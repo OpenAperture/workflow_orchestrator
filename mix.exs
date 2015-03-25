@@ -14,7 +14,7 @@ defmodule CloudOS.WorkflowOrchestrator.Mixfile do
   def application do
     [
       mod: { CloudOS.WorkflowOrchestrator, [] },
-      applications: [:logger, :cloudos_messaging]
+      applications: [:logger, :cloudos_messaging, :cloudos_manager_api]
     ]
   end
 
@@ -30,7 +30,8 @@ defmodule CloudOS.WorkflowOrchestrator.Mixfile do
   defp deps do
     [
       {:json, "~> 0.3.2"},
-      {:cloudos_messaging, git: "git@github.com:UmbrellaCorporation-SecretProjectLab/cloudos_messaging.git", ref: "890cd14c0d1e806595ab69bfc56bc9f9ea88a039"},
+      {:cloudos_messaging, git: "git@github.com:UmbrellaCorporation-SecretProjectLab/cloudos_messaging.git", ref: "2f566ae8b9de4798ca875f6e12f21fae682f446d"},
+      {:cloudos_manager_api, git: "git@github.com:UmbrellaCorporation-SecretProjectLab/cloudos_manager_api.git", ref: "2c9d20d705dc94580699f56c539dbf64746ffaf5"},
       {:timex_extensions, git: "git@github.com:UmbrellaCorporation-SecretProjectLab/timex_extensions.git", ref: "master"},
 
       #test dependencies

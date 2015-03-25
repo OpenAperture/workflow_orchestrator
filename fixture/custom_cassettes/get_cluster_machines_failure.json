@@ -1,0 +1,28 @@
+[
+  {
+    "request": {
+      "body": "",
+      "headers": {
+        "Accept": "application/json",
+        "User-Agent": "cloudos-manager-api"
+      },
+      "method": "get",
+      "options": {
+        "connect_timeout": 5000
+      },
+      "url": "https://cloudos-mgr.host.co/clusters/123abc/machines"
+    },
+    "response": {
+      "body": "",
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "-1",
+        "Connection": "keep-alive"
+      },
+      "status_code": ["HTTP/1.1", 401, "Unauthorized"],
+      "type": "ok"
+    }
+  }
+]
+
+

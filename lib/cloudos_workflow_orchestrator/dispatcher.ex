@@ -13,12 +13,18 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
 	alias CloudOS.Messaging.Queue
 
   alias CloudOS.WorkflowOrchestrator.Configuration
+  alias CloudOS.WorkflowOrchestrator.Workflow
 
   @moduledoc """
   This module contains the logic to dispatch WorkflowOrchestrator messsages to the appropriate GenServer(s) 
   """  
 
-	@connection_options nil
+	@connection_options %AMQPConnectionOptions{
+      username: Configuration.get_messaging_config("MESSAGING_USERNAME", :username),
+      password: Configuration.get_messaging_config("MESSAGING_PASSWORD", :password),
+      virtual_host: Configuration.get_messaging_config("MESSAGING_VIRTUAL_HOST", :virtual_host),
+      host: Configuration.get_messaging_config("MESSAGING_HOST", :host)
+    }
 	use CloudOS.Messaging
 
   @doc """
@@ -61,26 +67,20 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
   @spec register_queues() :: :ok | {:error, String.t()}
   def register_queues do
     Logger.debug("Registering WorkflowOrchestrator queues...")
-    connection_options = %AMQPConnectionOptions{
-      username: Configuration.get_messaging_config("MESSAGING_USERNAME", :username),
-      password: Configuration.get_messaging_config("MESSAGING_PASSWORD", :password),
-      virtual_host: Configuration.get_messaging_config("MESSAGING_VIRTUAL_HOST", :virtual_host),
-      host: Configuration.get_messaging_config("MESSAGING_HOST", :host)
+
+    milestone_queue = %Queue{
+      name: "workflow_orchestration_milestone", 
+      exchange: %AMQPExchange{name: Configuration.get_messaging_config("MESSAGING_EXCHANGE", :exchange), options: [:durable]},
+      error_queue: "workflow_orchestration_error",
+      options: [durable: true, arguments: [{"x-dead-letter-exchange", :longstr, ""},{"x-dead-letter-routing-key", :longstr, "workflow_orchestration_error"}]],
+      binding_options: [routing_key: "workflow_orchestration_milestone"]
     }
 
-#    hipchat_queue = %Queue{
-#      name: "notifications_hipchat", 
-#      exchange: %AMQPExchange{name: Configuration.get_messaging_config("MESSAGING_EXCHANGE", :exchange), options: [:durable]},
-#      error_queue: "notifications_error",
-#      options: [durable: true, arguments: [{"x-dead-letter-exchange", :longstr, ""},{"x-dead-letter-routing-key", :longstr, "notifications_error"}]],
-#      binding_options: [routing_key: "notifications_hipchat"]
-#    }
-
-    #subscribe(connection_options, hipchat_queue, fn(payload, _meta) -> dispatch_hipchat_notification(payload) end)
+    subscribe(milestone_queue, fn(payload, _meta) -> dispatch_milestone(payload) end)
   end
 
   @doc """
-  Method to dispatch HipChat notifications to the HipChat publisher
+  Method to dispatch Workflow Milestones to the Workflow Orchestrator
 
   ## Options
 
@@ -90,8 +90,15 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
 
   :ok | {:error, reason}
   """
-  @spec dispatch_hipchat_notification(Map) :: :ok | {:error, String.t()}
-  def dispatch_hipchat_notification(payload) do
-
+  @spec dispatch_milestone(Map) :: :ok | {:error, String.t()}
+  def dispatch_milestone(payload) do
+    case Workflow.start_link(payload, %{}) do
+      {:ok, workflow} ->
+        #The start_link of the server will automatically kick off the state machine
+        Logger.debug("Successfully processed payload")
+      {:error, reason} -> 
+        #raise an exception to kick the to another orchestrator (hopefully that can process it)
+        raise "Unable to process Workflow Orchestration message:  #{inspect reason}"
+    end
   end
 end

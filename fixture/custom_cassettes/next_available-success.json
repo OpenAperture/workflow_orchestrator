@@ -1,0 +1,50 @@
+[
+  {
+    "request": {
+      "body": "",
+      "headers": {
+        "Accept": "application/json",
+        "User-Agent": "cloudos-manager-api"
+      },
+      "method": "get",
+      "options": {
+        "connect_timeout": 5000
+      },
+      "url": "https://cloudos-mgr.host.co/messaging/exchanges/1/clusters"
+    },
+    "response": {
+      "body": "[{\"id\": 1,\"etcd_token\": \"123abc\"},{\"id\": 2,\"etcd_token\": \"789xyz\"}]",
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "-1",
+        "Connection": "keep-alive"
+      },
+      "status_code": ["HTTP/1.1", 200, "OK"],
+      "type": "ok"
+    }
+  },
+  {
+    "request": {
+      "body": "",
+      "headers": {
+        "Accept": "application/json",
+        "User-Agent": "cloudos-manager-api"
+      },
+      "method": "get",
+      "options": {
+        "connect_timeout": 5000
+      },
+      "url": "https://cloudos-mgr.host.co/clusters/123abc/machines"
+    },
+    "response": {
+      "body": "[{\"id\": 1,\"primaryIP\": \"123.234.456.789\"},{\"id\": 2,\"primaryIP\": \"000.000.000.000\"}]",
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "-1",
+        "Connection": "keep-alive"
+      },
+      "status_code": ["HTTP/1.1", 200, "OK"],
+      "type": "ok"
+    }
+  }  
+]

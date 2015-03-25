@@ -14,3 +14,11 @@ use Mix.Config
 #       level: :info,
 #       format: "$date $time [$level] $metadata$message\n",
 #       metadata: [:user_id]
+
+config :cloudos_manager_api, 
+	url: "https://cloudos-mgr.host.co",
+	client_id: "id",
+	client_secret: "secret"
+
+config :cloudos_workflow_orchestrator, 
+	exchange_id: "1"

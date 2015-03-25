@@ -1,0 +1,26 @@
+[
+  {
+    "request": {
+      "body": "",
+      "headers": {
+        "Accept": "application/json",
+        "User-Agent": "cloudos-manager-api"
+      },
+      "method": "get",
+      "options": {
+        "connect_timeout": 5000
+      },
+      "url": "https://cloudos-mgr.host.co/clusters"
+    },
+    "response": {
+      "body": "[{\"id\": 1,\"etcd_token\": \"123abc\"},{\"id\": 2,\"etcd_token\": \"789xyz\"}]",
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "-1",
+        "Connection": "keep-alive"
+      },
+      "status_code": ["HTTP/1.1", 200, "OK"],
+      "type": "ok"
+    }
+  }
+]

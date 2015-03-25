@@ -1,6 +1,7 @@
 %{"amqp": {:hex, :amqp, "0.1.0"},
   "amqp_client": {:hex, :amqp_client, "3.4.0"},
-  "cloudos_messaging": {:git, "git@github.com:UmbrellaCorporation-SecretProjectLab/cloudos_messaging.git", "890cd14c0d1e806595ab69bfc56bc9f9ea88a039", [ref: "890cd14c0d1e806595ab69bfc56bc9f9ea88a039"]},
+  "cloudos_manager_api": {:git, "git@github.com:UmbrellaCorporation-SecretProjectLab/cloudos_manager_api.git", "2c9d20d705dc94580699f56c539dbf64746ffaf5", [ref: "2c9d20d705dc94580699f56c539dbf64746ffaf5"]},
+  "cloudos_messaging": {:git, "git@github.com:UmbrellaCorporation-SecretProjectLab/cloudos_messaging.git", "2f566ae8b9de4798ca875f6e12f21fae682f446d", [ref: "2f566ae8b9de4798ca875f6e12f21fae682f446d"]},
   "exactor": {:hex, :exactor, "2.0.1"},
   "exjsx": {:hex, :exjsx, "3.1.0"},
   "exvcr": {:git, "git://github.com/parroty/exvcr.git", "b418f02b3515e72185dc74d76741dc67787f539e", [ref: "b418f02b3515e72185dc74d76741dc67787f539e"]},
