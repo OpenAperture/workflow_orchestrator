@@ -10,7 +10,7 @@
       "options": {
         "connect_timeout": 5000
       },
-      "url": "https://cloudos-mgr.host.co/messaging/exchanges/1/clusters"
+      "url": "https://cloudos-mgr.host.co/messaging/exchanges/1/clusters?allow_docker_builds=true"
     },
     "response": {
       "body": "",
@@ -34,7 +34,7 @@
       "options": {
         "connect_timeout": 5000
       },
-      "url": "https://cloudos-mgr.host.co/clusters"
+      "url": "https://cloudos-mgr.host.co/clusters?allow_docker_builds=true"
     },
     "response": {
       "body": "",

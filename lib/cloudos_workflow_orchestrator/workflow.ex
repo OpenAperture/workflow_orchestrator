@@ -2,14 +2,19 @@ require Logger
 
 defmodule CloudOS.WorkflowOrchestrator.Workflow do
   alias CloudOS.WorkflowOrchestrator.Configuration
+
   alias CloudOS.WorkflowOrchestrator.Notifications.Publisher, as: NotificationsPublisher
+
+  alias CloudOS.WorkflowOrchestrator.Builder.DockerHostResolver
+  alias CloudOS.WorkflowOrchestrator.Builder.Publisher, as: BuilderPublisher
+  alias CloudOS.WorkflowOrchestrator.Deployer.Publisher, as: DeployerPublisher
+  alias CloudOS.WorkflowOrchestrator.Deployer.EtcdClusterConnectionOptionsResolver
 
   alias CloudOS.ManagerAPI.EtcdCluster
   alias CloudOS.ManagerAPI.MessagingExchange
 
-	def start_link(workflow_info, additional_options) do
-		resolved_state = Map.merge(workflow_info, additional_options)
-		:gen_fsm.start_link(__MODULE__, resolved_state, [])
+	def start_link(workflow_info, delivery_tag) do
+		:gen_fsm.start_link(__MODULE__, %{workflow_info: workflow_info, delivery_tag: delivery_tag}, [])
 	end
 
 	def init(resolved_state) do
@@ -26,39 +31,42 @@ defmodule CloudOS.WorkflowOrchestrator.Workflow do
   end
 
 	def execute_next_workflow_step(event, from, state) do
-		current_step = state[:current_step]
+    workflow_info = state[:workflow_info]
+
+		current_step = workflow_info[:current_step]
     if current_step == nil do
-      resolved_state = send_success_notification(state, "Starting workflow...")
+      resolved_workflow_info = send_success_notification(workflow_info, "Starting workflow...")
     else
-      step_time = state[:step_time]
+      step_time = workflow_info[:step_time]
       timestamp = CloudosBuildServer.Timex.Extensions.get_elapased_timestamp(step_time)
       if (step_time != nil) do
-        resolved_state = Map.delete(state, :step_time)
+        resolved_workflow_info = Map.delete(workflow_info, :step_time)
       end
 
-      workflow_step_durations = resolved_state[:workflow_step_durations]
+      workflow_step_durations = resolved_workflow_info[:workflow_step_durations]
       if (workflow_step_durations != nil) do
-        resolved_state = Map.delete(resolved_state, :workflow_step_durations)
+        resolved_workflow_info = Map.delete(resolved_workflow_info, :workflow_step_durations)
       else
         workflow_step_durations = %{}
       end
       workflow_step_durations = Map.put(workflow_step_durations, "#{inspect current_step}", timestamp)
-      resolved_state = Map.merge(resolved_state, %{workflow_step_durations: workflow_step_durations})
+      resolved_workflow_info = Map.merge(resolved_workflow_info, %{workflow_step_durations: workflow_step_durations})
 
-      resolved_state = send_success_notification(resolved_state, "Completed Workflow Milestone:  #{inspect current_step}, in #{timestamp}")
+      resolved_workflow_info = send_success_notification(resolved_workflow_info, "Completed Workflow Milestone:  #{inspect current_step}, in #{timestamp}")
     end
 
-    resolved_state = Map.merge(resolved_state, %{step_time: Time.now()})
-    flush_to_database(resolved_state)
+    resolved_workflow_info = Map.merge(resolved_workflow_info, %{step_time: Time.now()})
+    flush_to_database(resolved_workflow_info)
 
-    next_workflow_step = resolve_next_step(resolved_state)
+    next_workflow_step = resolve_next_step(resolved_workflow_info)
     if next_workflow_step == nil do
     	next_workflow_step = :workflow_completed
     end
     #execute_workflow_step(resolve_next_step(resolved_state), resolved_state)
 
 		#{:reply, reply, new state, new state data}
-		{:reply, :ok, next_workflow_step, resolved_state}
+    state = Map.put(state, workflow_info: resolved_workflow_info)
+		{:reply, :ok, next_workflow_step, state}
 	end
 
 	def send_success_notification(state, message) do
@@ -78,7 +86,6 @@ defmodule CloudOS.WorkflowOrchestrator.Workflow do
     resolved_state
 	end
 
-
 	def flush_to_database(state) do
 		#TODO:  placeholder
 		:ok	    
@@ -97,8 +104,9 @@ defmodule CloudOS.WorkflowOrchestrator.Workflow do
   """
   @spec resolve_next_step(term) :: term
   def resolve_next_step(state) do
-  	current_step = state[:current_step]
-  	{_, next_step} = Enum.reduce state[:workflow_steps], {false, nil}, fn(available_step, {use_next_step, next_step})->
+    workflow_info = state[:workflow_info]
+  	current_step = workflow_info[:current_step]
+  	{_, next_step} = Enum.reduce workflow_info[:workflow_steps], {false, nil}, fn(available_step, {use_next_step, next_step})->
   		#we already found the next step
   		if (next_step != nil) do
   			{false, next_step}
@@ -170,43 +178,40 @@ defmodule CloudOS.WorkflowOrchestrator.Workflow do
 	#end
 
 	def build(event, from, state) do
-		IO.puts("build")
+    workflow_info = state[:workflow_info]
 
-    
-    docker_build_cluster = resolve_build_cluster()
-    if docker_build_cluster == nil do
+    {messaging_exchange_id, docker_build_machine} = DockerHostResolver.next_available
+    if docker_build_machine == nil do
       {:reply, :ok, :step_executed, workflow_step_failed("Unable to request build - no build clusters are available!", state)}
     else
+      payload = Map.merge(%{}, workflow_info)
+      payload = Map.put(payload, :docker_build_host, docker_build_machine["primaryIP"])
+      payload = Map.put(payload, :docker_build_host, docker_build_machine["primaryIP"])
 
+      #default entries for all communications to children
+      payload = Map.put(payload, :notifications_exchange_id, Configuration.get_current_exchange_id)
+      payload = Map.put(payload, :notifications_broker_id, Configuration.get_current_broker_id)
+      payload = Map.put(payload, :workflow_orchestration_exchange_id, Configuration.get_current_exchange_id)
+      payload = Map.put(payload, :workflow_orchestrationnotifications_broker_id, Configuration.get_current_broker_id)      
+
+      BuilderPublisher.build(state[:delivery_tag], messaging_exchange_id, payload)
     end
-
-#If clusters found, return a random cluster
-#If not, find other exchanges which have docker_builds=true
-#/messaging/exchanges
-#/messaging/exchanges/<exchange>/clusters?docker_builds=true
-#Fail if no cluster can be found
-#Put a request onto the build queue for that exchange
 
 		{:reply, :ok, :step_executed, state}
 	end
 
-  def resolve_build_cluster do
-
-
-    
-
-    #1.  Find a build cluster (etcd_token) in an available exchange
-    docker_build_clusters = EtcdCluster.list!(%{allow_docker_builds: true})
-    if docker_build_clusters == nil || length(docker_build_clusters) == 0 do
-      nil
-    else
-      
-
-    end
-  end
-
 	def deploy(event, from, state) do
-		IO.puts("deploy")
+    workflow_info = state[:workflow_info]
+
+    #default entries for all communications to children
+    payload = Map.merge(%{}, workflow_info)
+    payload = Map.put(payload, :notifications_exchange_id, Configuration.get_current_exchange_id)
+    payload = Map.put(payload, :notifications_broker_id, Configuration.get_current_broker_id)
+    payload = Map.put(payload, :workflow_orchestration_exchange_id, Configuration.get_current_exchange_id)
+    payload = Map.put(payload, :workflow_orchestrationnotifications_broker_id, Configuration.get_current_broker_id)      
+
+    BuilderPublisher.deploy(state[:delivery_tag], workflow_info[:etcd_token], payload)    
+
 		{:reply, :ok, :step_executed, state}
 	end
 

@@ -21,4 +21,5 @@ config :cloudos_manager_api,
 	client_secret: "secret"
 
 config :cloudos_workflow_orchestrator, 
-	exchange_id: "1"
+	exchange_id: "1",
+	broker_id: "1"

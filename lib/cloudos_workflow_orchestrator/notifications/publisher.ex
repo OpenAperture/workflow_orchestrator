@@ -1,5 +1,5 @@
 #
-# == notifications.ex
+# == publisher.ex
 #
 # This module contains the logic to publish messages to the Notifications system module
 # It is assumes that a Notifications module is running in the same exchanges 
@@ -96,6 +96,9 @@ defmodule CloudOS.WorkflowOrchestrator.Notifications.Publisher do
   """
   @spec handle_cast({:hipchat, Map}, Map) :: {:noreply, Map}
   def handle_cast({:hipchat, payload}, state) do
+
+    #TODO:  load connection options here and store in server state
+
 		case publish(@hipchat_queue, payload) do
 			:ok -> Logger.debug("Successfully published HipChat notification")
 			{:error, reason} -> Logger.error("Failed to publish HipChat notification:  #{inspect reason}")

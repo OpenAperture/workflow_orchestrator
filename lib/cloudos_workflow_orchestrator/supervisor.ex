@@ -46,7 +46,7 @@ defmodule CloudOS.WorkflowOrchestrator.Supervisor do
       # Define workers and child supervisors to be supervised
       worker(CloudOS.WorkflowOrchestrator.Dispatcher, []),
       worker(CloudOS.WorkflowOrchestrator.Notifications.Publisher, []),
-      worker(CloudOS.WorkflowOrchestrator.DockerHostResolver, [])
+      worker(CloudOS.WorkflowOrchestrator.Builder.DockerHostResolver, [])
     ]
 
     opts = [strategy: :one_for_one, name: __MODULE__]

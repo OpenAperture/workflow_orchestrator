@@ -1,13 +1,11 @@
 #
-# == notifications.ex
+# == docker_host_resolver.ex
 #
-# This module contains the logic to publish messages to the Notifications system module
-# It is assumes that a Notifications module is running in the same exchanges 
-# as the Workflow Orchestrator
+# This module contains the logic to resolve a Docker build host
 #
 require Logger
 
-defmodule CloudOS.WorkflowOrchestrator.DockerHostResolver do
+defmodule CloudOS.WorkflowOrchestrator.Builder.DockerHostResolver do
 	use GenServer
 
   alias CloudOS.WorkflowOrchestrator.Configuration
@@ -45,8 +43,6 @@ defmodule CloudOS.WorkflowOrchestrator.DockerHostResolver do
   Call handler to set the a value stored within the workflow server
 
   ## Options
-
-  The `state_value` option defines the value to be stored from the server
 
   The `_from` option defines the tuple {from, ref}
 

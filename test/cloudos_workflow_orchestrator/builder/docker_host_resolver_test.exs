@@ -1,8 +1,8 @@
-defmodule CloudOS.WorkflowOrchestrator.DockerHostResolverTest do
+defmodule CloudOS.WorkflowOrchestrator.Builder.DockerHostResolverTest do
   use ExUnit.Case
   use ExVCR.Mock, adapter: ExVCR.Adapter.Httpc, options: [clear_mock: true]
 
-  alias CloudOS.WorkflowOrchestrator.DockerHostResolver
+  alias CloudOS.WorkflowOrchestrator.Builder.DockerHostResolver
 
   alias CloudOS.Messaging.AMQP.ConnectionPool
   alias CloudOS.Messaging.AMQP.ConnectionPools
@@ -87,7 +87,7 @@ defmodule CloudOS.WorkflowOrchestrator.DockerHostResolverTest do
       }
       assert DockerHostResolver.get_host_from_cluster([{messaging_exchange_id, cluster}]) == {messaging_exchange_id, nil}
     end
-  end  
+  end    
 
   #=========================
   # get_global_build_clusters tests
@@ -123,9 +123,9 @@ defmodule CloudOS.WorkflowOrchestrator.DockerHostResolverTest do
     use_cassette "list_clusters_failure", custom: true do
       assert DockerHostResolver.get_global_build_clusters == nil
     end
-  end
+  end  
 
-  #=========================
+#=========================
   # get_local_build_clusters tests
 
   test "get_local_build_clusters - success no clusters" do
@@ -230,6 +230,22 @@ defmodule CloudOS.WorkflowOrchestrator.DockerHostResolverTest do
     end
   end 
 
+  test "get_build_clusters - success cached" do
+    state = %{
+      docker_build_clusters_retrieval_time: :calendar.universal_time,
+      docker_build_clusters: []
+    }
+    {exchange_clusters, returned_state} = DockerHostResolver.get_build_clusters(state)
+
+    assert returned_state != nil
+    assert returned_state[:docker_build_clusters] != nil
+    assert returned_state[:docker_build_clusters_retrieval_time] != nil
+
+    assert exchange_clusters != nil
+    assert exchange_clusters == returned_state[:docker_build_clusters]
+    assert length(exchange_clusters) == 0
+  end  
+
   #=========================
   # cache_stale? tests
 
@@ -259,7 +275,7 @@ defmodule CloudOS.WorkflowOrchestrator.DockerHostResolverTest do
   # handle_call({:next_available}) tests
 
   test "handle_call({:next_available}) - success" do
-    use_cassette "next_available-success", custom: true do
+    use_cassette "next_available-success", custom: true do 
       state = %{}
       {:reply, {_messaging_exchange_id, return_machine}, returned_state} = DockerHostResolver.handle_call({:next_available}, %{}, state)
 
@@ -283,5 +299,5 @@ defmodule CloudOS.WorkflowOrchestrator.DockerHostResolverTest do
       assert returned_state[:docker_build_clusters] == nil
       assert returned_state[:docker_build_clusters_retrieval_time] != nil    
     end
-  end
+  end  
 end

@@ -21,6 +21,21 @@ defmodule CloudOS.WorkflowOrchestrator.Configuration do
   end
 
   @doc """
+  Method to retrieve the currently assigned exchange id
+   
+  ## Options
+   
+  ## Return values
+
+  The exchange identifier
+  """ 
+  @spec get_current_exchange_id() :: String.t()
+  def get_current_broker_id do
+    System.get_env()
+    get_config("BROKER_ID", :cloudos_workflow_orchestrator, :broker_id)
+  end
+
+  @doc """
   Method to retrieve a configuration option from the environment or config settings, for the messaging application
    
   ## Options

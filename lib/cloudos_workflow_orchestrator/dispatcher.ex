@@ -10,8 +10,10 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
 
 	alias CloudOS.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
 	alias CloudOS.Messaging.AMQP.Exchange, as: AMQPExchange
-	alias CloudOS.Messaging.Queue
+  alias CloudOS.Messaging.AMQP.SubscriptionHandler
+  alias CloudOS.Messaging.Queue
 
+  alias CloudOS.WorkflowOrchestrator.MessageManager
   alias CloudOS.WorkflowOrchestrator.Configuration
   alias CloudOS.WorkflowOrchestrator.Workflow
 
@@ -76,7 +78,10 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
       binding_options: [routing_key: "workflow_orchestration_milestone"]
     }
 
-    subscribe(milestone_queue, fn(payload, _meta) -> dispatch_milestone(payload) end)
+    subscribe(milestone_queue, fn(payload, _meta, %{subscription_handler: subscription_handler, delivery_tag: delivery_tag} = async_info) -> 
+      MessageManager.track(async_info)
+      dispatch_milestone(payload, delivery_tag) 
+    end)
   end
 
   @doc """
@@ -90,9 +95,9 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
 
   :ok | {:error, reason}
   """
-  @spec dispatch_milestone(Map) :: :ok | {:error, String.t()}
-  def dispatch_milestone(payload) do
-    case Workflow.start_link(payload, %{}) do
+  @spec dispatch_milestone(Map, String.t()) :: :ok | {:error, String.t()}
+  def dispatch_milestone(payload, delivery_tag) do
+    case Workflow.start_link(payload, delivery_tag) do
       {:ok, workflow} ->
         #The start_link of the server will automatically kick off the state machine
         Logger.debug("Successfully processed payload")
@@ -101,4 +106,18 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
         raise "Unable to process Workflow Orchestration message:  #{inspect reason}"
     end
   end
+
+  def acknowledge(delivery_tag) do
+    message = MessageManager.remove(delivery_tag)
+    unless message == nil do
+      SubscriptionHandler.acknowledge(message[:subscription_handler], message[:delivery_tag])
+    end
+  end
+
+  def reject(delivery_tag, redeliver \\ false) do
+    message = MessageManager.remove(delivery_tag)
+    unless message == nil do
+      SubscriptionHandler.reject(message[:subscription_handler], message[:delivery_tag], redeliver)
+    end
+  end  
 end
