@@ -30,13 +30,13 @@ defmodule CloudOS.WorkflowOrchestrator.Mixfile do
   defp deps do
     [
       {:json, "~> 0.3.2"},
-      {:cloudos_messaging, git: "git@github.com:UmbrellaCorporation-SecretProjectLab/cloudos_messaging.git", ref: "86b545aef28e7d10003178594420995ed130a9ad"},
-      {:cloudos_manager_api, git: "git@github.com:UmbrellaCorporation-SecretProjectLab/cloudos_manager_api.git", ref: "2c9d20d705dc94580699f56c539dbf64746ffaf5"},
-      {:timex_extensions, git: "git@github.com:UmbrellaCorporation-SecretProjectLab/timex_extensions.git", ref: "master"},
+      {:cloudos_messaging, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/UmbrellaCorporation-SecretProjectLab/cloudos_messaging.git", ref: "7c9a59ba00b98ab198a4f4b53bb7460ca5d7140f", override: true},
+      {:cloudos_manager_api, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/UmbrellaCorporation-SecretProjectLab/cloudos_manager_api.git", ref: "77bdb8a5c9a176fd307e2c77e63cab0215b657c3", override: true},
+      {:timex_extensions, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/UmbrellaCorporation-SecretProjectLab/timex_extensions.git", ref: "master", override: true},
 
       #test dependencies
-      {:exvcr, github: "parroty/exvcr"},
-      {:meck, "0.8.2"}            
+      {:exvcr, github: "parroty/exvcr", override: true},
+      {:meck, "0.8.2", override: true}
     ]
   end
 end

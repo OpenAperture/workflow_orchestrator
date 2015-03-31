@@ -7,6 +7,18 @@ defmodule CloudOS.WorkflowOrchestrator.Builder.DockerHostResolverTest do
   alias CloudOS.Messaging.AMQP.ConnectionPool
   alias CloudOS.Messaging.AMQP.ConnectionPools
 
+  setup_all _context do
+    :meck.new(CloudosAuth.Client, [:passthrough])
+    :meck.expect(CloudosAuth.Client, :get_token, fn _, _, _ -> "abc" end)
+
+    on_exit _context, fn ->
+      try do
+        :meck.unload CloudosAuth.Client
+      rescue _ -> IO.puts "" end
+    end    
+    :ok
+  end
+  
   #=========================
   # get_host_for_cluster tests
 
