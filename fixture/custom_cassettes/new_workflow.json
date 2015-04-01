@@ -1,0 +1,52 @@
+[
+  {
+    "request": {
+      "body": "",
+      "headers": {
+        "Accept": "application/json",
+        "User-Agent": "cloudos-manager-api"
+      },
+      "method": "post",
+      "options": {
+        "connect_timeout": 5000
+      },
+      "url": "https://cloudos-mgr.host.co/workflows"
+    },
+    "response": {
+      "body": "",
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "-1",
+        "Connection": "keep-alive",
+        "Location": "https://cloudos-mgr.host.co/workflows/1"
+      },
+      "status_code": ["HTTP/1.1", 201, "Created"],
+      "type": "ok"
+    }
+  },
+  {
+    "request": {
+      "body": "",
+      "headers": {
+        "Accept": "application/json",
+        "User-Agent": "cloudos-manager-api"
+      },
+      "method": "put",
+      "options": {
+        "connect_timeout": 5000
+      },
+      "url": "https://cloudos-mgr.host.co/workflows/1"
+    },
+    "response": {
+      "body": "",
+      "headers": {
+        "Content-Type": "application/json",
+        "Content-Length": "-1",
+        "Connection": "keep-alive",
+        "Location": "https://cloudos-mgr.host.co/workflows/1"
+      },
+      "status_code": ["HTTP/1.1", 204, "No Content"],
+      "type": "ok"
+    }
+  },
+]

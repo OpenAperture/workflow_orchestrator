@@ -71,11 +71,11 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
     Logger.debug("Registering WorkflowOrchestrator queues...")
 
     milestone_queue = %Queue{
-      name: "workflow_orchestration_milestone", 
+      name: "workflow_orchestration", 
       exchange: %AMQPExchange{name: Configuration.get_messaging_config("MESSAGING_EXCHANGE", :exchange), options: [:durable]},
       error_queue: "workflow_orchestration_error",
       options: [durable: true, arguments: [{"x-dead-letter-exchange", :longstr, ""},{"x-dead-letter-routing-key", :longstr, "workflow_orchestration_error"}]],
-      binding_options: [routing_key: "workflow_orchestration_milestone"]
+      binding_options: [routing_key: "workflow_orchestration"]
     }
 
     subscribe(milestone_queue, fn(payload, _meta, %{subscription_handler: subscription_handler, delivery_tag: delivery_tag} = async_info) -> 
@@ -99,7 +99,7 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
   def dispatch_milestone(payload, delivery_tag) do
     case Workflow.start_link(payload, delivery_tag) do
       {:ok, workflow} ->
-        #The start_link of the server will automatically kick off the state machine
+        Workflow.execute(workflow)
         Logger.debug("Successfully processed payload")
       {:error, reason} -> 
         #raise an exception to kick the to another orchestrator (hopefully that can process it)

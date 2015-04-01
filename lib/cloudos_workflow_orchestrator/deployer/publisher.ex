@@ -20,6 +20,8 @@ defmodule CloudOS.WorkflowOrchestrator.Deployer.Publisher do
 	alias CloudOS.WorkflowOrchestrator.Configuration
   alias CloudOS.WorkflowOrchestrator.Dispatcher
 
+  alias CloudOS.ManagerAPI
+
 	@connection_options nil
 	use CloudOS.Messaging
 
@@ -49,8 +51,8 @@ defmodule CloudOS.WorkflowOrchestrator.Deployer.Publisher do
   :ok | {:error, reason}   
   """
   @spec deploy(String.t(), String.t(), term) :: :ok | {:error, String.t()}
-  def deploy(delivery_tag, etcd_token, payload) do
-   	GenServer.cast(__MODULE__, {:deploy, delivery_tag, etcd_token, payload})
+  def deploy(delivery_tag, messaging_exchange_id, payload) do
+   	GenServer.cast(__MODULE__, {:deploy, delivery_tag, messaging_exchange_id, payload})
   end
 
   @doc """
@@ -69,52 +71,32 @@ defmodule CloudOS.WorkflowOrchestrator.Deployer.Publisher do
   messages to arrive out of order.
   """
   @spec handle_cast({:deploy, String.t(), String.t(), Map}, Map) :: {:noreply, Map}
-  def handle_cast({:deploy, delivery_tag, etcd_token, payload}, state) do
-    messaging_exchange_id = get_exchange_for_cluster(etcd_token)
-    if messaging_exchange_id == nil do
-      Logger.error("Unable to deploy to cluster #{etcd_token}, cluster is not associated with an exchange!")
-      Dispatcher.reject(delivery_tag)      
-    else
-      deploy_queue = %Queue{
-        name: "deployer", 
-        exchange: %AMQPExchange{name: messaging_exchange_id, options: [:durable]},
-        error_queue: "deployer_error",
-        options: [durable: true, arguments: [{"x-dead-letter-exchange", :longstr, ""},{"x-dead-letter-routing-key", :longstr, "deployer_error"}]],
-        binding_options: [routing_key: "deployer"]
-      }
+  def handle_cast({:deploy, delivery_tag, messaging_exchange_id, payload}, state) do
+    deploy_queue = %Queue{
+      name: "deployer", 
+      exchange: %AMQPExchange{name: messaging_exchange_id, options: [:durable]},
+      error_queue: "deployer_error",
+      options: [durable: true, arguments: [{"x-dead-letter-exchange", :longstr, ""},{"x-dead-letter-routing-key", :longstr, "deployer_error"}]],
+      binding_options: [routing_key: "deployer"]
+    }
 
-      connection_options = ConnectionOptionsResolver.resolve(
-        ManagerAPI.get_api, 
-        Configuration.get_current_broker_id,
-        Configuration.get_current_exchange_id,
-        messaging_exchange_id
-      )
+    connection_options = ConnectionOptionsResolver.resolve(
+      ManagerAPI.get_api, 
+      Configuration.get_current_broker_id,
+      Configuration.get_current_exchange_id,
+      messaging_exchange_id
+    )
 
-  		case publish(connection_options, deploy_queue, payload) do
-  			:ok -> 
-          Logger.debug("Successfully published Deployer message")
-          Dispatcher.acknowledge(delivery_tag)
-  			{:error, reason} -> 
-          Logger.error("Failed to publish Deployer message:  #{inspect reason}")
-          Dispatcher.reject(delivery_tag)
-  		end
-    end
+		case publish(connection_options, deploy_queue, payload) do
+			:ok -> 
+        Logger.debug("Successfully published Deployer message")
+        Dispatcher.acknowledge(delivery_tag)
+			{:error, reason} -> 
+        Logger.error("Failed to publish Deployer message:  #{inspect reason}")
+        Dispatcher.reject(delivery_tag)
+		end
     {:noreply, state}
   end
 
-  @doc """
-  Method to retrieve build clusters in the current exchange
-
-  ## Return Values
-
-  List of {messaging_exchange_id, cluster}
-  """
-  @spec get_exchange_for_cluster(Map) :: List
-  def get_exchange_for_cluster(etcd_token) do
-    case EtcdCluster.get_cluster!(ManagerAPI.get_api, etcd_token) do
-      nil -> nil
-      cluster -> 
-        cluster["messaging_exchange_id"]
-    end
-  end   
+  
 end
