@@ -203,13 +203,13 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowFSM do
   @spec build(term, term, Map) :: {:reply, :in_progress, :workflow_completed, Map}
   def build(event, from, state_data) do  
     Logger.debug("#{state_data[:workflow_fsm_prefix]} Requesting build...")   
-    {messaging_exchange_id, docker_build_machine} = DockerHostResolver.next_available
-    if docker_build_machine == nil do
+    {messaging_exchange_id, docker_build_etcd_cluster} = DockerHostResolver.next_available
+    if docker_build_etcd_cluster == nil do
       Workflow.workflow_failed(state_data[:workflow], "Unable to request build - no build clusters are available!")
       Dispatcher.acknowledge(state_data[:delivery_tag])
     else
       payload = Workflow.get_info(state_data[:workflow])
-      payload = Map.put(payload, :docker_build_host, docker_build_machine["primaryIP"])
+      payload = Map.put(payload, :docker_build_etcd_token, docker_build_etcd_cluster["etcd_token"])
 
       #default entries for all communications to children
       payload = Map.put(payload, :notifications_exchange_id, Configuration.get_current_exchange_id)

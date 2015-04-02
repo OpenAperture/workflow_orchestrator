@@ -20,88 +20,6 @@ defmodule CloudOS.WorkflowOrchestrator.Builder.DockerHostResolverTest do
   end
   
   #=========================
-  # get_host_for_cluster tests
-
-  test "get_host_for_cluster - success no machines" do
-    use_cassette "get_cluster_machines-empty", custom: true do
-      messaging_exchange_id = "123"
-      cluster = %{
-        "etcd_token" => "123abc"
-      }
-      assert DockerHostResolver.get_host_for_cluster({messaging_exchange_id, cluster}) == {messaging_exchange_id, nil}
-    end
-  end
-
-  test "get_host_for_cluster - success machines" do
-    use_cassette "get_cluster_machines", custom: true do
-      messaging_exchange_id = "123"
-      cluster = %{
-        "etcd_token" => "123abc"
-      }
-      {return_messaging_exchange_id, return_machine} = DockerHostResolver.get_host_for_cluster({messaging_exchange_id, cluster})
-
-      assert return_messaging_exchange_id == messaging_exchange_id
-      assert return_machine != nil
-      assert return_machine["primaryIP"] != nil
-      assert (return_machine["primaryIP"] == "123.234.456.789" || return_machine["primaryIP"] == "000.000.000.000")
-    end
-  end
-
-  test "get_host_for_cluster - failure" do
-    use_cassette "get_cluster_machines_failure", custom: true do
-      messaging_exchange_id = "123"
-      cluster = %{
-        "etcd_token" => "123abc"
-      }
-      assert DockerHostResolver.get_host_for_cluster({messaging_exchange_id, cluster}) == {messaging_exchange_id, nil}
-    end
-  end
-
-  #=========================
-  # get_host_from_cluster tests
-
-  test "get_host_from_cluster - success no machines" do
-    use_cassette "get_cluster_machines-empty", custom: true do
-      messaging_exchange_id = "123"
-      cluster = %{
-        "etcd_token" => "123abc"
-      }
-      assert DockerHostResolver.get_host_from_cluster([{messaging_exchange_id, cluster}]) == {messaging_exchange_id, nil}
-    end
-  end
-
-  test "get_host_from_cluster - success machines" do
-    use_cassette "get_cluster_machines", custom: true do
-      messaging_exchange_id = "123"
-      cluster = %{
-        "etcd_token" => "123abc"
-      }
-      {return_messaging_exchange_id, return_machine} = DockerHostResolver.get_host_from_cluster([{messaging_exchange_id, cluster}])
-
-      assert return_messaging_exchange_id == messaging_exchange_id
-      assert return_machine != nil
-      assert return_machine["primaryIP"] != nil
-      assert (return_machine["primaryIP"] == "123.234.456.789" || return_machine["primaryIP"] == "000.000.000.000")
-    end
-  end
-
-  test "get_host_from_cluster - no clusters" do
-    use_cassette "get_cluster_machines_failure", custom: true do
-      assert DockerHostResolver.get_host_from_cluster([]) == {nil, nil}
-    end
-  end
-
-  test "get_host_from_cluster - failure" do
-    use_cassette "get_cluster_machines_failure", custom: true do
-      messaging_exchange_id = "123"
-      cluster = %{
-        "etcd_token" => "123abc"
-      }
-      assert DockerHostResolver.get_host_from_cluster([{messaging_exchange_id, cluster}]) == {messaging_exchange_id, nil}
-    end
-  end    
-
-  #=========================
   # get_global_build_clusters tests
 
   test "get_global_build_clusters - success no clusters" do
@@ -289,24 +207,24 @@ defmodule CloudOS.WorkflowOrchestrator.Builder.DockerHostResolverTest do
   test "handle_call({:next_available}) - success" do
     use_cassette "next_available-success", custom: true do 
       state = %{}
-      {:reply, {_messaging_exchange_id, return_machine}, returned_state} = DockerHostResolver.handle_call({:next_available}, %{}, state)
+      {:reply, {_messaging_exchange_id, returned_cluster}, returned_state} = DockerHostResolver.handle_call({:next_available}, %{}, state)
 
       assert returned_state != nil
       assert returned_state[:docker_build_clusters] != nil
       assert returned_state[:docker_build_clusters_retrieval_time] != nil      
 
-      assert return_machine != nil
-      assert return_machine["primaryIP"] != nil
-      assert (return_machine["primaryIP"] == "123.234.456.789" || return_machine["primaryIP"] == "000.000.000.000")      
+      assert returned_cluster != nil
+      assert returned_cluster["etcd_token"] != nil
+      assert (returned_cluster["etcd_token"] == "123abc" || returned_cluster["etcd_token"] == "789xyz")      
     end
   end
 
   test "handle_call({:next_available}) - failure" do
     use_cassette "next_available-failure", custom: true do
       state = %{}
-      {:reply, {_messaging_exchange_id, return_machine}, returned_state} = DockerHostResolver.handle_call({:next_available}, %{}, state)
+      {:reply, {_messaging_exchange_id, returned_cluster}, returned_state} = DockerHostResolver.handle_call({:next_available}, %{}, state)
 
-      assert return_machine == nil
+      assert returned_cluster == nil
       assert returned_state != nil
       assert returned_state[:docker_build_clusters] == nil
       assert returned_state[:docker_build_clusters_retrieval_time] != nil    

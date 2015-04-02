@@ -150,7 +150,7 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowFSMTest do
   		assert messaging_exchange_id == 123
 
   		assert payload != nil
-  		assert payload[:docker_build_host] == "123.456.789.000"
+  		assert payload[:docker_build_etcd_token] == "123456789000"
   		assert payload[:notifications_exchange_id] == "1"
   		assert payload[:notifications_broker_id] == "1"
   		assert payload[:workflow_orchestration_exchange_id] == "1"
@@ -159,7 +159,7 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowFSMTest do
   	end)
 
   	:meck.new(DockerHostResolver, [:passthrough])
-  	:meck.expect(DockerHostResolver, :next_available, fn -> {123, %{"primaryIP" => "123.456.789.000"}} end)
+  	:meck.expect(DockerHostResolver, :next_available, fn -> {123, %{"etcd_token" => "123456789000"}} end)
   	
 		assert WorkflowFSM.build(:workflow_completed, nil, state_data) == {:reply, :in_progress, :workflow_completed, state_data}
   after
@@ -173,7 +173,7 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.expect(Workflow, :create_from_payload, fn _ -> %{} end)
   	:meck.expect(Workflow, :get_id, fn _ -> "123abc" end)
   	:meck.expect(Workflow, :save, fn _ -> :ok end)
-  	:meck.expect(Workflow, :complete?, fn _ -> true end)
+  	:meck.expect(Workflow, :complete?, fn _ -> false end)
   	:meck.expect(Workflow, :get_info, fn _ -> %{} end)
   	:meck.expect(Workflow, :resolve_next_milestone, fn _ -> :build end)
 
@@ -185,7 +185,7 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowFSMTest do
   		assert messaging_exchange_id == 123
 
   		assert payload != nil
-  		assert payload[:docker_build_host] == "123.456.789.000"
+  		assert payload[:docker_build_etcd_token] == "123456789000"
   		assert payload[:notifications_exchange_id] == "1"
   		assert payload[:notifications_broker_id] == "1"
   		assert payload[:workflow_orchestration_exchange_id] == "1"
@@ -194,11 +194,11 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowFSMTest do
   	end)
 
   	:meck.new(DockerHostResolver, [:passthrough])
-  	:meck.expect(DockerHostResolver, :next_available, fn -> {123, %{"primaryIP" => "123.456.789.000"}} end)
+  	:meck.expect(DockerHostResolver, :next_available, fn -> {123, %{"etcd_token" => "123456789000"}} end)
   	
   	payload = %{
   	}
-
+  	
     {:ok, workflow} = WorkflowFSM.start_link(payload, orig_delivery_tag)
     {result, workflow_info} = WorkflowFSM.execute(workflow)
     assert result == :completed

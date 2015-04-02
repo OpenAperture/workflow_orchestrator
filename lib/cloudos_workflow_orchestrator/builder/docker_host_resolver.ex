@@ -55,7 +55,7 @@ defmodule CloudOS.WorkflowOrchestrator.Builder.DockerHostResolver do
   @spec handle_call({:next_available}, term, Map) :: {:reply, {String.t(), Map}, Map}
   def handle_call({:next_available}, _from, state) do
     {docker_build_clusters, resolved_state} = get_build_clusters(state)
-    {:reply, get_host_from_cluster(docker_build_clusters), resolved_state}
+    {:reply, get_exchange_cluster(docker_build_clusters), resolved_state}
   end
 
   @doc """
@@ -142,7 +142,7 @@ defmodule CloudOS.WorkflowOrchestrator.Builder.DockerHostResolver do
   end
 
   @doc """
-  Method to retrieve the machines for a cluster and resolve to a single machine for use.
+  Method to resolve to a single cluster for use.
 
   ## Options
 
@@ -151,10 +151,10 @@ defmodule CloudOS.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   ## Return Values
 
-  {messaging_exchange_id, machine}
+  {messaging_exchange_id, cluster}
   """
-  @spec get_host_from_cluster(List) :: {String.t(), Map}
-  def get_host_from_cluster(docker_build_clusters) do
+  @spec get_exchange_cluster(List) :: {String.t(), Map}
+  def get_exchange_cluster(docker_build_clusters) do
     if docker_build_clusters == nil || length(docker_build_clusters) == 0 do
       {nil, nil}
     else
@@ -167,42 +167,7 @@ defmodule CloudOS.WorkflowOrchestrator.Builder.DockerHostResolver do
         end
       end
 
-      get_host_for_cluster(exchange_cluster)
-    end
-  end
-
-  @doc """
-  Method to retrieve the machines for a cluster and resolve to a single machine for use.
-
-  ## Options
-
-  The `messaging_exchange_id` option represents the associated exchange identifier of the cluster
-
-  The `cluster` option represents the cluster Map
-
-  ## Return Values
-
-  {messaging_exchange_id, machine}
-  """
-  @spec get_host_for_cluster({String.t(), Map}) :: {String.t(), Map}
-  def get_host_for_cluster({messaging_exchange_id, cluster}) do
-    case EtcdCluster.get_cluster_machines!(cluster["etcd_token"]) do
-      nil -> 
-        Logger.error("Failed to retrieve machines for cluster #{cluster["etcd_token"]}!")
-        {messaging_exchange_id, nil}
-      [] -> 
-        Logger.debug("There are no machines associated to cluster #{cluster["etcd_token"]}")
-        {messaging_exchange_id, nil}
-      machines -> 
-        idx = :random.uniform(length(machines))-1
-        {machine, cur_idx} = Enum.reduce machines, {nil, 0}, fn (cur_machine, {machine, cur_idx}) ->
-          if cur_idx == idx do
-            {cur_machine, cur_idx+1}
-          else
-            {machine, cur_idx+1}
-          end
-        end
-        {messaging_exchange_id, machine}
+      exchange_cluster
     end
   end
 end
