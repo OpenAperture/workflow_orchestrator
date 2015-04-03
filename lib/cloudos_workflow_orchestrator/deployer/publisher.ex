@@ -1,5 +1,5 @@
 #
-# == notifications.ex
+# == publisher.ex
 #
 # This module contains the logic to publish messages to the Deployer system module
 #
@@ -97,6 +97,4 @@ defmodule CloudOS.WorkflowOrchestrator.Deployer.Publisher do
 		end
     {:noreply, state}
   end
-
-  
 end

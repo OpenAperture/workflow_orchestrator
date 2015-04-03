@@ -1,12 +1,16 @@
 #
 # == docker_host_resolver.ex
 #
-# This module contains the logic to resolve a Docker build host
+# This module contains the logic to resolve a Docker build cluster
 #
 require Logger
 
 defmodule CloudOS.WorkflowOrchestrator.Builder.DockerHostResolver do
 	use GenServer
+
+  @moduledoc """
+  This module contains the logic to resolve a Docker build cluster
+  """  
 
   alias CloudOS.WorkflowOrchestrator.Configuration
   alias CloudOS.ManagerAPI
@@ -28,7 +32,7 @@ defmodule CloudOS.WorkflowOrchestrator.Builder.DockerHostResolver do
   end
 
   @doc """
-  Method to retrieve the next available host from an available docker cluster
+  Method to retrieve the next available cluster from an available docker build clusters
 
   ## Return Values
 

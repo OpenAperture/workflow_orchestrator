@@ -1,17 +1,19 @@
 #
-# == docker_host_resolver.ex
+# == etcd_cluster_messaging_resolver.ex
 #
-# This module contains the logic to resolve a Docker build host
+# This module contains the logic to resolve the correct MessagingExchange for an EtcdCluster
 #
 require Logger
 
 defmodule CloudOS.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolver do
 	use GenServer
 
-  alias CloudOS.WorkflowOrchestrator.Configuration
+  @moduledoc """
+  This module contains the logic to resolve the correct MessagingExchange for an EtcdCluster
+  """  
+
   alias CloudOS.ManagerAPI
   alias CloudOS.ManagerAPI.EtcdCluster
-  alias CloudOS.ManagerAPI.MessagingExchange  
 
   @doc """
   Specific start_link implementation (required by the supervisor)
@@ -28,21 +30,27 @@ defmodule CloudOS.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolver do
   end
 
   @doc """
-  Method to retrieve the next available host from an available docker cluster
+  Method to retrieve the identifier for the MessagingExchange associated with an EtcdCluster
+
+  ## Options
+
+  The `etcd_token` option defines token for the EtcdCluster
 
   ## Return Values
 
-  Returns a tuple containing {messaging_exchange_id, etcd_cluster}
+  messaging_exchange_id
   """
-  @spec exchange_for_cluster(String.t()) :: {String.t(), Map}
+  @spec exchange_for_cluster(String.t()) :: String.t()
   def exchange_for_cluster(etcd_token) do
   	GenServer.call(__MODULE__, {:exchange_for_cluster, etcd_token})
   end
 
   @doc """
-  Call handler to set the a value stored within the workflow server
+  Call handler to retrieve the identifier for the MessagingExchange associated with an EtcdCluster
 
   ## Options
+
+  The `etcd_token` option defines token for the EtcdCluster
 
   The `_from` option defines the tuple {from, ref}
 
@@ -58,7 +66,11 @@ defmodule CloudOS.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolver do
   end
 
   @doc """
-  Method to retrieve build clusters in the current exchange
+  Method to retrieve the messaging_exchange_id for an etcd_token
+
+  ## Options
+
+  The `etcd_token` option defines token for the EtcdCluster
 
   ## Return Values
 

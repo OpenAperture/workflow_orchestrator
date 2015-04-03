@@ -15,7 +15,9 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
 
   alias CloudOS.WorkflowOrchestrator.MessageManager
   alias CloudOS.WorkflowOrchestrator.Configuration
-  alias CloudOS.WorkflowOrchestrator.Workflow
+  alias CloudOS.WorkflowOrchestrator.WorkflowFSM
+
+  alias CloudOS.WorkflowOrchestrator.MessageManager
 
   @moduledoc """
   This module contains the logic to dispatch WorkflowOrchestrator messsages to the appropriate GenServer(s) 
@@ -80,26 +82,24 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
 
     subscribe(milestone_queue, fn(payload, _meta, %{subscription_handler: subscription_handler, delivery_tag: delivery_tag} = async_info) -> 
       MessageManager.track(async_info)
-      dispatch_milestone(payload, delivery_tag) 
+      execute_orchestration(payload, delivery_tag) 
     end)
   end
 
   @doc """
-  Method to dispatch Workflow Milestones to the Workflow Orchestrator
+  Method to start Workflow Orchestrations
 
   ## Options
 
   The `payload` option is the Map of HipChat options
 
-  ## Return Value
-
-  :ok | {:error, reason}
+  The `delivery_tag` option is the unique identifier of the message
   """
-  @spec dispatch_milestone(Map, String.t()) :: :ok | {:error, String.t()}
-  def dispatch_milestone(payload, delivery_tag) do
-    case Workflow.start_link(payload, delivery_tag) do
+  @spec execute_orchestration(Map, String.t()) :: term
+  def execute_orchestration(payload, delivery_tag) do
+    case WorkflowFSM.start_link(payload, delivery_tag) do
       {:ok, workflow} ->
-        Workflow.execute(workflow)
+        WorkflowFSM.execute(workflow)
         Logger.debug("Successfully processed payload")
       {:error, reason} -> 
         #raise an exception to kick the to another orchestrator (hopefully that can process it)
@@ -107,6 +107,14 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
     end
   end
 
+  @doc """
+  Method to acknowledge a message has been processed
+
+  ## Options
+
+  The `delivery_tag` option is the unique identifier of the message
+  """
+  @spec acknowledge(String.t()) :: term
   def acknowledge(delivery_tag) do
     message = MessageManager.remove(delivery_tag)
     unless message == nil do
@@ -114,6 +122,16 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
     end
   end
 
+  @doc """
+  Method to reject a message has been processed
+
+  ## Options
+
+  The `delivery_tag` option is the unique identifier of the message
+
+  The `redeliver` option can be used to requeue a message
+  """
+  @spec reject(String.t(), term) :: term
   def reject(delivery_tag, redeliver \\ false) do
     message = MessageManager.remove(delivery_tag)
     unless message == nil do

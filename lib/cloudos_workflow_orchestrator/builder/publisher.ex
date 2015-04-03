@@ -1,5 +1,5 @@
 #
-# == notifications.ex
+# == publisher.ex
 #
 # This module contains the logic to publish messages to the Builder system module
 #
@@ -19,6 +19,8 @@ defmodule CloudOS.WorkflowOrchestrator.Builder.Publisher do
 
 	alias CloudOS.WorkflowOrchestrator.Configuration
   alias CloudOS.WorkflowOrchestrator.Dispatcher
+
+  alias CloudOS.ManagerAPI
 
 	@connection_options nil
 	use CloudOS.Messaging

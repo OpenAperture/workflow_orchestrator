@@ -1,8 +1,17 @@
+#
+# == workflow.ex
+#
+# This module contains the for interacting with a Workflow
+#
 require Logger
 require Timex.Date
 
 defmodule CloudOS.WorkflowOrchestrator.Workflow do
   use Timex
+
+  @moduledoc """
+  This module contains the for interacting with a Workflow
+  """    
 
   alias CloudOS.WorkflowOrchestrator.Configuration
   alias CloudOS.WorkflowOrchestrator.Notifications.Publisher, as: NotificationsPublisher
