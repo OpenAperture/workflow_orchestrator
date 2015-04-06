@@ -25,62 +25,37 @@ defmodule CloudOS.WorkflowOrchestrator.Workflow do
   alias CloudOS.Timex.Extensions, as: TimexExtensions
 
   @doc """
-  This module contains the logic for interacting with a CloudOS deployment repo.
+  This module contains the for interacting with a Workflow
+  """
+
+  @doc """
+  Method to create a Workflow
 
   ## Options
    
-  The `options` option defines the information needed to download and interact with a CloudOS deployment repo.
-  The following values are accepted:
-    * cloudos_repo - (required) String containing the repo org and name:  Perceptive-Cloud/myapp-deploy
-    * cloudos_repo_branch - (optional) - String containing the commit/tag/branch to be used.  Defaults to 'master'
+  The `payload` option defines the Workflow info that should be stored and referenced
 
   ## Return values
 
-  If the server is successfully created and initialized, the function returns
-  `{:ok, pid}`, where pid is the pid of the server. If there already exists a
-  process with the specified server name, the function returns
-  `{:error, {:already_started, pid}}` with the pid of that process.
-
-  If the `init/1` callback fails with `reason`, the function returns
-  `{:error, reason}`. Otherwise, if it returns `{:stop, reason}`
-  or `:ignore`, the process is terminated and the function returns
-  `{:error, reason}` or `:ignore`, respectively.
+  pid (Workflow) | {:error, reason}
   """
-  @spec create_from_payload(Map) :: pid
+  @spec create_from_payload(Map) :: pid | {:error, String.t()}
   def create_from_payload(payload) do
-    if (payload[:workflow_start_time] == nil) do
-      payload = Map.merge(payload, %{workflow_start_time: Time.now()})
-    end
-
-    if (payload[:workflow_completed] == nil) do
-      payload = Map.merge(payload, %{workflow_completed: false})
-    end
-
-    if (payload[:workflow_error] == nil) do
-      resolved_state = Map.merge(payload, %{workflow_error: false})
-    end
-
-    if (payload[:event_log] == nil) do
-      payload = Map.merge(payload, %{event_log: []})
-    end
-
-    raw_workflow_info = %{
-    	workflow_id: payload[:workflow_id],
-      deployment_repo: payload[:deployment_repo],
-      deployment_repo_git_ref: payload[:deployment_repo_git_ref],
-      source_repo: payload[:source_repo],
-      source_repo_git_ref: payload[:source_repo_git_ref],
-      source_commit_hash: payload[:source_commit_hash],
-      milestones: Poison.encode!(payload[:milestones]),
-      workflow_error: payload[:workflow_error],
-      workflow_completed: payload[:workflow_completed],
-      event_log: Poison.encode!(payload[:event_log]),
+    defaults = %{
+      workflow_start_time: Time.now(),
+      workflow_completed: false,
+      workflow_error: false,
+      event_log: []
     }
+    raw_workflow_info = Map.merge(defaults, payload)
 
-    result = if (raw_workflow_info[:workflow_id] == nil || String.length(raw_workflow_info[:workflow_id]) == 0) do
+    result = if raw_workflow_info[:workflow_id] == nil do
 	    case WorkflowAPI.create_workflow!(ManagerAPI.get_api, raw_workflow_info) do
 	      nil -> {:error, "Failed to create a new Workflow with the ManagerAPI!"}
-	      workflow_id -> {:ok, Map.put(raw_workflow_info, :workflow_id, workflow_id)}
+	      workflow_id -> 
+          raw_workflow_info = Map.put(raw_workflow_info, :workflow_id, workflow_id)
+          raw_workflow_info = Map.put(raw_workflow_info, :id, workflow_id)
+          {:ok, raw_workflow_info}
 	    end   
 	  else
 	  	{:ok, raw_workflow_info}
@@ -96,18 +71,66 @@ defmodule CloudOS.WorkflowOrchestrator.Workflow do
   	end
   end
 
+  @doc """
+  Method to retrieve the id from a workflow
+
+  ## Options
+   
+  The `workflow` option defines the Workflow referenced
+
+  ## Return values
+
+  identifier
+  """
+  @spec get_id(pid) :: String.t()
   def get_id(workflow) do
   	get_info(workflow)[:workflow_id]
   end
 
+  @doc """
+  Method to retrieve the info associated with a workflow
+
+  ## Options
+   
+  The `workflow` option defines the Workflow referenced
+
+  ## Return values
+
+  Map
+  """
+  @spec get_info(pid) :: Map
   def get_info(workflow) do
   	Agent.get(workflow, fn info -> info end)
   end
 
+  @doc """
+  Method to determine if a Workflow is completed
+
+  ## Options
+   
+  The `workflow` option defines the Workflow referenced
+
+  ## Return values
+
+  boolean
+  """
+  @spec complete?(pid) :: term
   def complete?(workflow) do
   	get_info(workflow)[:workflow_completed]
   end
 
+  @doc """
+  Method to resolve the next Workflow step
+
+  ## Options
+   
+  The `workflow` option defines the Workflow referenced
+
+  ## Return values
+
+  atom with next step
+  """
+  @spec resolve_next_milestone(pid) :: term
   def resolve_next_milestone(workflow) do
     workflow_info = get_info(workflow)
 
@@ -115,7 +138,9 @@ defmodule CloudOS.WorkflowOrchestrator.Workflow do
     if current_step == nil do
     	resolved_workflow_info = send_success_notification(workflow_info, "Starting workflow...")
     else
-      step_time = workflow_info[:step_time]
+      resolved_workflow_info = workflow_info
+
+      step_time = resolved_workflow_info[:step_time]
       timestamp = TimexExtensions.get_elapased_timestamp(step_time)
       if (step_time != nil) do
         resolved_workflow_info = Map.delete(workflow_info, :step_time)
@@ -127,7 +152,6 @@ defmodule CloudOS.WorkflowOrchestrator.Workflow do
       end
       workflow_step_durations = Map.put(workflow_step_durations, to_string(current_step), timestamp)
       resolved_workflow_info = Map.put(resolved_workflow_info, :workflow_step_durations, workflow_step_durations)
-
       resolved_workflow_info = send_success_notification(resolved_workflow_info, "Completed Workflow Milestone:  #{inspect current_step}, in #{timestamp}")
     end
 
@@ -152,19 +176,65 @@ defmodule CloudOS.WorkflowOrchestrator.Workflow do
     next_workflow_step
   end
 
+  @doc """
+  Method to publish a "success" notification
+
+  ## Options
+   
+  The `workflow_info` option defines the Workflow info Map
+
+  The `message` option defines the message to publish
+
+  ## Return values
+
+  Map, containing the updated workflow_info
+  """
+  @spec send_success_notification(Map, String.t()) :: Map
 	def send_success_notification(workflow_info, message) do
 		send_notification(workflow_info, true, message)
 	end
 
+  @doc """
+  Method to publish a "failure" notification
+
+  ## Options
+   
+  The `workflow_info` option defines the Workflow info Map
+
+  The `message` option defines the message to publish
+
+  ## Return values
+
+  Map, containing the updated workflow_info
+  """
+  @spec send_failure_notification(Map, String.t()) :: Map
 	def send_failure_notification(workflow_info, message) do
 		send_notification(workflow_info, false, message)
 	end
 
+  @doc """
+  Method to publish a notification
+
+  ## Options
+   
+  The `workflow_info` option defines the Workflow info Map
+
+  The `is_success` option defines failure/success of the message
+
+  The `message` option defines the message to publish
+
+  ## Return values
+
+  Map, containing the updated workflow_info
+  """
+  @spec send_notification(Map, term, String.t()) :: Map
 	def send_notification(workflow_info, is_success, message) do
 		prefix = "[CloudOS Workflow][#{workflow_info[:workflow_id]}]"
     Logger.debug("#{prefix} #{message}")
     workflow_info = add_event_to_log(workflow_info, message, prefix)
     NotificationsPublisher.hipchat_notification(is_success, prefix, message)
+
+    workflow_info
 	end
 
   @doc """
@@ -172,7 +242,7 @@ defmodule CloudOS.WorkflowOrchestrator.Workflow do
 
   ## Options
 
-  The `state` option represents the server's current state
+  The `workflow_info` option defines the Workflow info Map
 
   The `event` option defines a String containing the event to track
 
@@ -180,7 +250,7 @@ defmodule CloudOS.WorkflowOrchestrator.Workflow do
 
   ## Return Values
 
-  The updated server state
+  The updated Workflow info
   """
   @spec add_event_to_log(Map, String.t(), String.t()) :: Map
   def add_event_to_log(workflow_info, event, prefix \\ nil) do
@@ -196,6 +266,18 @@ defmodule CloudOS.WorkflowOrchestrator.Workflow do
     Map.put(workflow_info, :event_log, event_log)
   end
 
+  @doc """
+  Method to save Workflow info to the database
+
+  ## Options
+
+  The `workflow` option defines the Workflow referenced
+
+  ## Return Value
+
+  :ok | {:error, reason}
+  """
+  @spec save(pid) :: :ok | {:error, String.t()}
 	def save(workflow) do
 		workflow_info = get_info(workflow)
 
@@ -231,13 +313,13 @@ defmodule CloudOS.WorkflowOrchestrator.Workflow do
 
   ## Options
 
-  The `state` option is the current state (GenServer) of the workflow
+  The `workflow_info` option defines the Workflow info Map
 
   ## Return Values
 
   The atom containing the next available state or nil
   """
-  @spec resolve_next_step(term) :: term
+  @spec resolve_next_step(Map) :: term
   def resolve_next_step(workflow_info) do
     if workflow_info[:workflow_steps] == nil || length(workflow_info[:workflow_steps]) == 0 do
       nil
@@ -270,15 +352,39 @@ defmodule CloudOS.WorkflowOrchestrator.Workflow do
     end
   end  
 
+  @doc """
+  Method to complete a Workflow in failure
+
+  ## Options
+
+  The `workflow` option defines the Workflow referenced
+
+  The `reason` option defines the String reason for the failure
+
+  ## Return Values
+
+  :ok | {:error, reason}
+  """
+  @spec workflow_failed(pid, String.t()) :: :ok | {:error, String.t()}
   def workflow_failed(workflow, reason) do
   	workflow_info = get_info(workflow)
-    workflow_info = send_failure_notification(workflow, "Workflow Milestone Failed:  #{inspect workflow_info[:current_step]}.  Reason:  #{reason}")
+    workflow_info = send_failure_notification(workflow_info, "Workflow Milestone Failed:  #{inspect workflow_info[:current_step]}.  Reason:  #{reason}")
     workflow_info = Map.merge(workflow_info, %{workflow_completed: true})
     workflow_info = Map.merge(workflow_info, %{workflow_error: true})
 
     timestamp = TimexExtensions.get_elapased_timestamp(workflow_info[:workflow_start_time])
     workflow_info = Map.merge(workflow_info, %{workflow_duration: timestamp})
     workflow_info = send_failure_notification(workflow_info, "Workflow has failed in #{timestamp}")
+
+    workflow_step_durations = workflow_info[:workflow_step_durations]
+    if (workflow_step_durations == nil) do
+      workflow_step_durations = %{}
+    end
+
+    timestamp = TimexExtensions.get_elapased_timestamp(workflow_info[:step_time])    
+    workflow_step_durations = Map.put(workflow_step_durations, to_string(workflow_info[:current_step]), timestamp)
+    workflow_info = Map.put(workflow_info, :workflow_step_durations, workflow_step_durations)
+    workflow_info = send_success_notification(workflow_info, "Completed Workflow Milestone:  #{inspect workflow_info[:current_step]}, in #{timestamp}")    
 
     Agent.update(workflow, fn _ -> workflow_info end)
     save(workflow)

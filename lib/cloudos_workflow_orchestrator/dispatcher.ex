@@ -99,8 +99,12 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
   def execute_orchestration(payload, delivery_tag) do
     case WorkflowFSM.start_link(payload, delivery_tag) do
       {:ok, workflow} ->
-        WorkflowFSM.execute(workflow)
-        Logger.debug("Successfully processed payload")
+        result = WorkflowFSM.execute(workflow)
+        if result == :completed do
+          Logger.debug("Successfully processed payload")
+        else
+          Logger.error("Payload failed to process correctly:  #{inspect result}")
+        end
       {:error, reason} -> 
         #raise an exception to kick the to another orchestrator (hopefully that can process it)
         raise "Unable to process Workflow Orchestration message:  #{inspect reason}"

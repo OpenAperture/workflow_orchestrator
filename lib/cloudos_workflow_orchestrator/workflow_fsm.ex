@@ -214,8 +214,9 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowFSM do
       #default entries for all communications to children
       payload = Map.put(payload, :notifications_exchange_id, Configuration.get_current_exchange_id)
       payload = Map.put(payload, :notifications_broker_id, Configuration.get_current_broker_id)
-      payload = Map.put(payload, :workflow_orchestration_exchange_id, Configuration.get_current_exchange_id)
-      payload = Map.put(payload, :workflow_orchestration_broker_id, Configuration.get_current_broker_id)      
+      payload = Map.put(payload, :orchestration_exchange_id, Configuration.get_current_exchange_id)
+      payload = Map.put(payload, :orchestration_broker_id, Configuration.get_current_broker_id)
+      payload = Map.put(payload, :orchestration_queue_name, "workflow_orchestration")
 
       Logger.debug("#{state_data[:workflow_fsm_prefix]} Saving workflow...")
       Workflow.save(state_data[:workflow])
@@ -263,8 +264,9 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowFSM do
       payload = workflow_info
       payload = Map.put(payload, :notifications_exchange_id, Configuration.get_current_exchange_id)
       payload = Map.put(payload, :notifications_broker_id, Configuration.get_current_broker_id)
-      payload = Map.put(payload, :workflow_orchestration_exchange_id, Configuration.get_current_exchange_id)
-      payload = Map.put(payload, :workflow_orchestration_broker_id, Configuration.get_current_broker_id)      
+      payload = Map.put(payload, :orchestration_exchange_id, Configuration.get_current_exchange_id)
+      payload = Map.put(payload, :orchestration_broker_id, Configuration.get_current_broker_id)      
+      payload = Map.put(payload, :orchestration_queue_name, "workflow_orchestration")
 
       Logger.debug("#{state_data[:workflow_fsm_prefix]} Saving workflow...")
       Workflow.save(state_data[:workflow])
