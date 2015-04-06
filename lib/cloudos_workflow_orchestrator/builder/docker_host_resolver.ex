@@ -163,7 +163,7 @@ defmodule CloudOS.WorkflowOrchestrator.Builder.DockerHostResolver do
       {nil, nil}
     else
       idx = :random.uniform(length(docker_build_clusters))-1
-      {exchange_cluster, cur_idx} = Enum.reduce docker_build_clusters, {nil, 0}, fn (exchange_cluster, {etcd_token, cur_idx}) ->
+      {exchange_cluster, _} = Enum.reduce docker_build_clusters, {nil, 0}, fn (exchange_cluster, {etcd_token, cur_idx}) ->
         if cur_idx == idx do
           {exchange_cluster, cur_idx+1}
         else

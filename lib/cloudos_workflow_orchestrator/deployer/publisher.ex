@@ -13,7 +13,6 @@ defmodule CloudOS.WorkflowOrchestrator.Deployer.Publisher do
   """  
 
   alias CloudOS.Messaging.ConnectionOptionsResolver
-	alias CloudOS.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
 	alias CloudOS.Messaging.AMQP.Exchange, as: AMQPExchange
 	alias CloudOS.Messaging.Queue
 

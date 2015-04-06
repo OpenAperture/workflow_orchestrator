@@ -80,7 +80,7 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
       binding_options: [routing_key: "workflow_orchestration"]
     }
 
-    subscribe(milestone_queue, fn(payload, _meta, %{subscription_handler: subscription_handler, delivery_tag: delivery_tag} = async_info) -> 
+    subscribe(milestone_queue, fn(payload, _meta, %{delivery_tag: delivery_tag} = async_info) -> 
       MessageManager.track(async_info)
       execute_orchestration(payload, delivery_tag) 
     end)

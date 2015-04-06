@@ -13,12 +13,9 @@ defmodule CloudOS.WorkflowOrchestrator.Workflow do
   This module contains the for interacting with a Workflow
   """    
 
-  alias CloudOS.WorkflowOrchestrator.Configuration
   alias CloudOS.WorkflowOrchestrator.Notifications.Publisher, as: NotificationsPublisher
 
   alias CloudOS.ManagerAPI
-  alias CloudOS.ManagerAPI.EtcdCluster
-  alias CloudOS.ManagerAPI.MessagingExchange
   alias CloudOS.ManagerAPI.Workflow, as: WorkflowAPI
   alias CloudOS.ManagerAPI.Response
 

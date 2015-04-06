@@ -4,9 +4,6 @@ defmodule CloudOS.WorkflowOrchestrator.Builder.DockerHostResolverTest do
 
   alias CloudOS.WorkflowOrchestrator.Builder.DockerHostResolver
 
-  alias CloudOS.Messaging.AMQP.ConnectionPool
-  alias CloudOS.Messaging.AMQP.ConnectionPools
-
   setup_all _context do
     :meck.new(CloudosAuth.Client, [:passthrough])
     :meck.expect(CloudosAuth.Client, :get_token, fn _, _, _ -> "abc" end)
@@ -181,7 +178,7 @@ defmodule CloudOS.WorkflowOrchestrator.Builder.DockerHostResolverTest do
 
   test "cache_stale? - no time" do
     state = %{}
-    DockerHostResolver.cache_stale?(state) == true
+    assert DockerHostResolver.cache_stale?(state) == true
   end
 
   test "cache_stale? - expired" do
@@ -191,14 +188,14 @@ defmodule CloudOS.WorkflowOrchestrator.Builder.DockerHostResolverTest do
     state = %{
       docker_build_clusters_retrieval_time: :calendar.gregorian_seconds_to_datetime(seconds)
     }
-    DockerHostResolver.cache_stale?(state) == true
+    assert DockerHostResolver.cache_stale?(state) == true
   end
 
   test "cache_stale? - valid" do
     state = %{
       docker_build_clusters_retrieval_time: :calendar.universal_time
     }
-    DockerHostResolver.cache_stale?(state) == false
+    assert DockerHostResolver.cache_stale?(state) == false
   end
 
   #=========================

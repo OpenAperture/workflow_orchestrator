@@ -32,17 +32,10 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowFSM do
   alias CloudOS.WorkflowOrchestrator.Workflow
   alias CloudOS.WorkflowOrchestrator.Configuration
   alias CloudOS.WorkflowOrchestrator.Dispatcher
-  alias CloudOS.WorkflowOrchestrator.Notifications.Publisher, as: NotificationsPublisher
   alias CloudOS.WorkflowOrchestrator.Builder.DockerHostResolver
   alias CloudOS.WorkflowOrchestrator.Builder.Publisher, as: BuilderPublisher
   alias CloudOS.WorkflowOrchestrator.Deployer.Publisher, as: DeployerPublisher
   alias CloudOS.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolver
-
-  alias CloudOS.ManagerAPI
-  alias CloudOS.ManagerAPI.EtcdCluster
-  alias CloudOS.ManagerAPI.Response
-
-  alias CloudOS.Timex.Extensions, as: TimexExtensions
 
   @doc """
   Method to start a WorkflowFSM
@@ -118,10 +111,94 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowFSM do
   :ok
   """
   @spec terminate(term, term, Map) :: :ok
-	def terminate(reason, current_state, state_data) do
+	def terminate(_reason, _current_state, state_data) do
 		Logger.debug("#{state_data[:workflow_fsm_prefix]} Workflow Orchestration has finished normally")
 		:ok
 	end
+
+  @doc """
+  :gen_fsm callback - http://www.erlang.org/doc/man/gen_fsm.html#Module:code_change-4
+
+  ## Options
+
+  The `old_vsn` option:  OldVsn = Vsn | {down, Vsn}
+
+  The `current_state` option contains the last state of the :gen_fsm server
+
+  The `state_data` option contains the default state data of the :gen_fsm server
+
+  The `opts` option contains additional extra options
+
+  ## Return Values
+  
+  {:ok, term, Map}
+  """
+  @spec code_change(term, term, Map, term) :: {:ok, term, Map}
+  def code_change(_old_vsn, current_state, state_data, _opts) do
+    {:ok, current_state, state_data}
+  end
+
+  @doc """
+  :gen_fsm callback - http://www.erlang.org/doc/man/gen_fsm.html#Module:handle_info-3
+
+  ## Options
+
+  The `info` option contains additional extra options
+
+  The `current_state` option contains the last state of the :gen_fsm server
+
+  The `state_data` option contains the default state data of the :gen_fsm server
+
+  ## Return Values
+  
+  {:next_state,term,Map}
+  """
+  @spec handle_info(term, term, Map) :: {:next_state,term,Map}
+  def handle_info(_info, current_state, state_data) do
+    {:next_state,current_state,state_data}
+  end    
+
+  @doc """
+  :gen_fsm callback - http://www.erlang.org/doc/man/gen_fsm.html#Module:handle_event-3
+
+  ## Options
+
+  The `event` option contains the current event received by the server
+
+  The `current_state` option contains the last state of the :gen_fsm server
+
+  The `state_data` option contains the default state data of the :gen_fsm server
+
+  ## Return Values
+  
+  {:next_state,term,Map}
+  """
+  @spec handle_event(term, term, Map) :: {:next_state,term,Map}
+  def handle_event(_event, current_state, state_data) do
+    {:next_state,current_state,state_data}
+  end   
+
+  @doc """
+  :gen_fsm callback - http://www.erlang.org/doc/man/gen_fsm.html#Module:handle_sync_event-4
+
+  ## Options
+
+  The `event` option contains the current event received by the server
+
+  The `from` option contains the caller of the server
+
+  The `current_state` option contains the last state of the :gen_fsm server
+
+  The `state_data` option contains the default state data of the :gen_fsm server
+
+  ## Return Values
+  
+  {:next_state,term,Map}
+  """
+  @spec handle_sync_event(term, term, term, Map) :: {:next_state,term,Map}
+  def handle_sync_event(_event, _from, current_state, state_data) do
+    {:next_state,current_state,state_data}
+  end 
 
   @doc """
   :gen_fsm callback - http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-3 for the state :workflow_starting
@@ -143,7 +220,7 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowFSM do
   {:reply, :in_progress, next_milestone, state_data}
   """
   @spec workflow_starting(term, term, Map) :: {:reply, :in_progress, term, Map}
-  def workflow_starting(current_state, from, state_data) do
+  def workflow_starting(_current_state, _from, state_data) do
     Logger.debug("#{state_data[:workflow_fsm_prefix]} Starting Workflow Orchestration for request message #{state_data[:delivery_tag]}...")
 
     Logger.debug("#{state_data[:workflow_fsm_prefix]} Saving workflow...")
@@ -175,7 +252,7 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowFSM do
   {:stop, :normal, {:completed, state_data[:workflow]}, state_data}
   """
   @spec workflow_completed(term, term, Map) :: {:stop, :normal, {:completed, pid}, Map}
-  def workflow_completed(current_state, from, state_data) do
+  def workflow_completed(_current_state, _from, state_data) do
     Logger.debug("#{state_data[:workflow_fsm_prefix]} Finishing Workflow Orchestration...")
     {:stop, :normal, {:completed, state_data[:workflow]}, state_data}
   end
@@ -201,7 +278,7 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowFSM do
   {:reply, :in_progress, :workflow_completed, state_data}
   """
   @spec build(term, term, Map) :: {:reply, :in_progress, :workflow_completed, Map}
-  def build(event, from, state_data) do  
+  def build(_event, _from, state_data) do  
     Logger.debug("#{state_data[:workflow_fsm_prefix]} Requesting build...")   
     {messaging_exchange_id, docker_build_etcd_cluster} = DockerHostResolver.next_available
     if docker_build_etcd_cluster == nil do
@@ -250,7 +327,7 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowFSM do
   {:reply, :in_progress, :workflow_completed, state_data}
   """
   @spec deploy(term, term, Map) :: {:reply, :in_progress, :workflow_completed, Map}
-  def deploy(event, from, state_data) do  
+  def deploy(_event, _from, state_data) do  
     Logger.debug("#{state_data[:workflow_fsm_prefix]} Requesting deploy...")
 
     workflow_info = Workflow.get_info(state_data[:workflow])

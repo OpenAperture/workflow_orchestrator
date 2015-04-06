@@ -4,9 +4,6 @@ defmodule CloudOS.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolverTest
 
   alias CloudOS.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolver
 
-  alias CloudOS.Messaging.AMQP.ConnectionPool
-  alias CloudOS.Messaging.AMQP.ConnectionPools
-
   setup_all _context do
     :meck.new(CloudosAuth.Client, [:passthrough])
     :meck.expect(CloudosAuth.Client, :get_token, fn _, _, _ -> "abc" end)

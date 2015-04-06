@@ -11,10 +11,10 @@ defmodule CloudOS.WorkflowOrchestrator.Notifications.PublisherTest do
 
   test "handle_cast({:hipchat, payload}) - success" do
   	:meck.new(ConnectionPools, [:passthrough])
-  	:meck.expect(ConnectionPools, :get_pool, fn opts -> %{} end)
+  	:meck.expect(ConnectionPools, :get_pool, fn _ -> %{} end)
 
   	:meck.new(ConnectionPool, [:passthrough])
-  	:meck.expect(ConnectionPool, :publish, fn pool, exchange, queue, payload -> :ok end)
+  	:meck.expect(ConnectionPool, :publish, fn _, _, _, _ -> :ok end)
 
   	state = %{
   	}

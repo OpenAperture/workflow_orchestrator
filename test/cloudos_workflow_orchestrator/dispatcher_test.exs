@@ -4,12 +4,8 @@ defmodule CloudOS.WorkflowOrchestrator.DispatcherTests do
 
   alias CloudOS.WorkflowOrchestrator.Dispatcher
 
-  alias CloudOS.Messaging.Queue
-  alias CloudOS.Messaging.ConnectionOptions
-  alias CloudOS.Messaging.AMQP.ConnectionOptions
   alias CloudOS.Messaging.AMQP.ConnectionPool
   alias CloudOS.Messaging.AMQP.ConnectionPools
-  alias CloudOS.Messaging.AMQP.Exchange, as: AMQPExchange
   alias CloudOS.Messaging.AMQP.SubscriptionHandler
 
   alias CloudOS.WorkflowOrchestrator.WorkflowFSM
