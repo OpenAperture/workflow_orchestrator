@@ -299,6 +299,9 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowTest do
   # send_success_notification tests
 
   test "send_success_notification" do
+    :meck.new(NotificationsPublisher, [:passthrough])
+    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
+
   	id = "#{UUID.uuid1()}"
   	payload = %{
   		id: id,
@@ -319,12 +322,17 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowTest do
     event = List.first(updated_info[:event_log])
     assert event != nil
     assert String.contains?(event, "hello")
+  after
+    :meck.unload(NotificationsPublisher)
   end
 
   # ============================
   # send_failure_notification tests
 
   test "send_failure_notification" do
+    :meck.new(NotificationsPublisher, [:passthrough])
+    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
+
   	id = "#{UUID.uuid1()}"
   	payload = %{
   		id: id,
@@ -345,12 +353,17 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowTest do
     event = List.first(updated_info[:event_log])
     assert event != nil
     assert String.contains?(event, "hello")
+  after
+    :meck.unload(NotificationsPublisher)
   end  
 
   # ============================
   # send_notification tests
 
   test "send_notification" do
+    :meck.new(NotificationsPublisher, [:passthrough])
+    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
+
   	id = "#{UUID.uuid1()}"
   	payload = %{
   		id: id,
@@ -371,12 +384,17 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowTest do
     event = List.first(updated_info[:event_log])
     assert event != nil
     assert String.contains?(event, "hello")
+  after
+    :meck.unload(NotificationsPublisher)
   end
 
   # ============================
   # add_event_to_log tests
 
   test "add_event_to_log" do
+    :meck.new(NotificationsPublisher, [:passthrough])
+    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
+
   	id = "#{UUID.uuid1()}"
   	payload = %{
   		id: id,
@@ -397,6 +415,8 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowTest do
     event = List.first(updated_info[:event_log])
     assert event != nil
     assert String.contains?(event, "hello")
+  after
+    :meck.unload(NotificationsPublisher)
   end  
 
   # ============================

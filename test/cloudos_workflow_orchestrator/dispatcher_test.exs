@@ -7,7 +7,12 @@ defmodule CloudOS.WorkflowOrchestrator.DispatcherTests do
   alias CloudOS.Messaging.AMQP.ConnectionPool
   alias CloudOS.Messaging.AMQP.ConnectionPools
   alias CloudOS.Messaging.AMQP.SubscriptionHandler
+  alias CloudOS.Messaging.ConnectionOptionsResolver
+  alias CloudOS.Messaging.AMQP.Exchange, as: AMQPExchange
+  alias CloudOS.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
+  alias CloudOS.Messaging.AMQP.QueueBuilder
 
+  alias CloudOS.WorkflowOrchestrator.Configuration
   alias CloudOS.WorkflowOrchestrator.WorkflowFSM
   alias CloudOS.WorkflowOrchestrator.MessageManager
   
@@ -21,10 +26,18 @@ defmodule CloudOS.WorkflowOrchestrator.DispatcherTests do
     :meck.new(ConnectionPool, [:passthrough])
     :meck.expect(ConnectionPool, :subscribe, fn _, _, _, _ -> :ok end)
 
+    :meck.new(ConnectionOptionsResolver, [:passthrough])
+    :meck.expect(ConnectionOptionsResolver, :get_for_broker, fn _, _ -> %AMQPConnectionOptions{} end)
+
+    :meck.new(QueueBuilder, [:passthrough])
+    :meck.expect(QueueBuilder, :build, fn _,_,_ -> %CloudOS.Messaging.Queue{name: ""} end)      
+
     assert Dispatcher.register_queues == :ok
   after
     :meck.unload(ConnectionPool)
     :meck.unload(ConnectionPools)
+    :meck.unload(ConnectionOptionsResolver)
+    :meck.unload(QueueBuilder)
   end
 
   test "register_queues failure" do
@@ -34,10 +47,18 @@ defmodule CloudOS.WorkflowOrchestrator.DispatcherTests do
     :meck.new(ConnectionPool, [:passthrough])
     :meck.expect(ConnectionPool, :subscribe, fn _, _, _, _ -> {:error, "bad news bears"} end)
 
+    :meck.new(ConnectionOptionsResolver, [:passthrough])
+    :meck.expect(ConnectionOptionsResolver, :get_for_broker, fn _, _ -> %AMQPConnectionOptions{} end)    
+
+    :meck.new(QueueBuilder, [:passthrough])
+    :meck.expect(QueueBuilder, :build, fn _,_,_ -> %CloudOS.Messaging.Queue{name: ""} end)      
+
     assert Dispatcher.register_queues == {:error, "bad news bears"}
   after
     :meck.unload(ConnectionPool)
     :meck.unload(ConnectionPools)
+    :meck.unload(ConnectionOptionsResolver)
+    :meck.unload(QueueBuilder)
   end  
 
   # ===================================

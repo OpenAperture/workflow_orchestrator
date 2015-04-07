@@ -4,8 +4,10 @@ defmodule CloudOS.WorkflowOrchestrator.Deployer.PublisherTest do
 
   alias CloudOS.WorkflowOrchestrator.Deployer.Publisher, as: DeployerPublisher
   alias CloudOS.WorkflowOrchestrator.Dispatcher
+  alias CloudOS.Messaging.ConnectionOptionsResolver
+  alias CloudOS.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
 
-  #alias CloudOS.Messaging.ConnectionOptionsResolver
+  alias CloudOS.Messaging.AMQP.QueueBuilder
   alias CloudOS.Messaging.AMQP.ConnectionPool
   alias CloudOS.Messaging.AMQP.ConnectionPools
 
@@ -42,6 +44,12 @@ defmodule CloudOS.WorkflowOrchestrator.Deployer.PublisherTest do
       :meck.new(Dispatcher, [:passthrough])
       :meck.expect(Dispatcher, :acknowledge, fn _ -> :ok end)
 
+      :meck.new(QueueBuilder, [:passthrough])
+      :meck.expect(QueueBuilder, :build, fn _,_,_ -> %CloudOS.Messaging.Queue{name: ""} end)      
+
+      :meck.new(ConnectionOptionsResolver, [:passthrough])
+      :meck.expect(ConnectionOptionsResolver, :resolve, fn _, _, _, _ -> %AMQPConnectionOptions{} end)
+
       state = %{
       }
 
@@ -54,6 +62,8 @@ defmodule CloudOS.WorkflowOrchestrator.Deployer.PublisherTest do
     :meck.unload(ConnectionPool)
     :meck.unload(ConnectionPools)
     :meck.unload(Dispatcher)
+    :meck.unload(QueueBuilder)
+    :meck.unload(ConnectionOptionsResolver)    
   end
 
   test "handle_cast({:deploy}) - failure" do
@@ -67,6 +77,12 @@ defmodule CloudOS.WorkflowOrchestrator.Deployer.PublisherTest do
       :meck.new(Dispatcher, [:passthrough])
       :meck.expect(Dispatcher, :reject, fn _ -> :ok end)
 
+      :meck.new(QueueBuilder, [:passthrough])
+      :meck.expect(QueueBuilder, :build, fn _,_,_ -> %CloudOS.Messaging.Queue{name: ""} end)      
+
+      :meck.new(ConnectionOptionsResolver, [:passthrough])
+      :meck.expect(ConnectionOptionsResolver, :resolve, fn _, _, _, _ -> %AMQPConnectionOptions{} end)      
+
       state = %{
       }
 
@@ -79,5 +95,7 @@ defmodule CloudOS.WorkflowOrchestrator.Deployer.PublisherTest do
     :meck.unload(ConnectionPool)
     :meck.unload(ConnectionPools)
     :meck.unload(Dispatcher)
+    :meck.unload(QueueBuilder)
+    :meck.unload(ConnectionOptionsResolver)    
   end  
 end

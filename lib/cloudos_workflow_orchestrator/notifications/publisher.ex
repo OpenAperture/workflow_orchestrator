@@ -15,25 +15,13 @@ defmodule CloudOS.WorkflowOrchestrator.Notifications.Publisher do
   """  
 
 	alias CloudOS.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
-	alias CloudOS.Messaging.AMQP.Exchange, as: AMQPExchange
-	alias CloudOS.Messaging.Queue
+	alias CloudOS.Messaging.AMQP.QueueBuilder
 
 	alias CloudOS.WorkflowOrchestrator.Configuration
 
-	@hipchat_queue %Queue{
-    name: "notifications_hipchat", 
-    exchange: %AMQPExchange{name: Configuration.get_messaging_config("MESSAGING_EXCHANGE", :exchange), failover_name: Configuration.get_messaging_config("FAILOVER_MESSAGING_EXCHANGE", :failover_exchange), options: [:durable]},
-    error_queue: "notifications_error",
-    options: [durable: true, arguments: [{"x-dead-letter-exchange", :longstr, ""},{"x-dead-letter-routing-key", :longstr, "notifications_error"}]],
-    binding_options: [routing_key: "notifications_hipchat"]
-  }
+  alias CloudOS.ManagerAPI
 
-	@connection_options %AMQPConnectionOptions{
-      username: Configuration.get_messaging_config("MESSAGING_USERNAME", :username),
-      password: Configuration.get_messaging_config("MESSAGING_PASSWORD", :password),
-      virtual_host: Configuration.get_messaging_config("MESSAGING_VIRTUAL_HOST", :virtual_host),
-      host: Configuration.get_messaging_config("MESSAGING_HOST", :host)
-    }
+	@connection_options nil
 	use CloudOS.Messaging
 
   @doc """
@@ -96,10 +84,10 @@ defmodule CloudOS.WorkflowOrchestrator.Notifications.Publisher do
   """
   @spec handle_cast({:hipchat, Map}, Map) :: {:noreply, Map}
   def handle_cast({:hipchat, payload}, state) do
+    hipchat_queue = QueueBuilder.build(ManagerAPI.get_api, "notifications_hipchat", Configuration.get_current_exchange_id)
 
-    #TODO:  load connection options here and store in server state
-
-		case publish(@hipchat_queue, payload) do
+    options = CloudOS.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerAPI.get_api, Configuration.get_current_broker_id)
+		case publish(options, hipchat_queue, payload) do
 			:ok -> Logger.debug("Successfully published HipChat notification")
 			{:error, reason} -> Logger.error("Failed to publish HipChat notification:  #{inspect reason}")
 		end

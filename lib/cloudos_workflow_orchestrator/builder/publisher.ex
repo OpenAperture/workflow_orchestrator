@@ -13,8 +13,7 @@ defmodule CloudOS.WorkflowOrchestrator.Builder.Publisher do
   """  
 
   alias CloudOS.Messaging.ConnectionOptionsResolver
-	alias CloudOS.Messaging.AMQP.Exchange, as: AMQPExchange
-	alias CloudOS.Messaging.Queue
+	alias CloudOS.Messaging.AMQP.QueueBuilder
 
 	alias CloudOS.WorkflowOrchestrator.Configuration
   alias CloudOS.WorkflowOrchestrator.Dispatcher
@@ -71,13 +70,7 @@ defmodule CloudOS.WorkflowOrchestrator.Builder.Publisher do
   """
   @spec handle_cast({:build, String.t(), String.t(), Map}, Map) :: {:noreply, Map}
   def handle_cast({:build, delivery_tag, messaging_exchange_id, payload}, state) do
-    build_queue = %Queue{
-      name: "builder", 
-      exchange: %AMQPExchange{name: messaging_exchange_id, options: [:durable]},
-      error_queue: "builder_error",
-      options: [durable: true, arguments: [{"x-dead-letter-exchange", :longstr, ""},{"x-dead-letter-routing-key", :longstr, "builder_error"}]],
-      binding_options: [routing_key: "builder"]
-    }
+    build_queue = QueueBuilder.build(ManagerAPI.get_api, "builder", messaging_exchange_id)
 
     connection_options = ConnectionOptionsResolver.resolve(
       ManagerAPI.get_api, 

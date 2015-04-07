@@ -15,11 +15,14 @@ use Mix.Config
 #       format: "$date $time [$level] $metadata$message\n",
 #       metadata: [:user_id]
 
+config :autostart,
+	register_queues: false
+
 config :cloudos_manager_api, 
-	manager_url: "https://cloudos-mgr.host.co",
-	oauth_login_url: "https://auth.host.co",
-	client_id: "id",
-	client_secret: "secret"
+	manager_url: System.get_env("CLOUDOS_MANAGER_URL") || "https://cloudos-mgr.host.co",
+	oauth_login_url: System.get_env("CLOUDOS_OAUTH_LOGIN_URL") || "https://auth.host.co",
+	client_id: System.get_env("CLOUDOS_OAUTH_CLIENT_ID") ||"id",
+	client_secret: System.get_env("CLOUDOS_OAUTH_CLIENT_SECRET") || "secret"
 
 config :cloudos_workflow_orchestrator, 
 	exchange_id: "1",

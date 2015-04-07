@@ -30,8 +30,8 @@ defmodule CloudOS.WorkflowOrchestrator.Mixfile do
   defp deps do
     [
       {:poison, "~> 1.3.1"},
-      {:cloudos_messaging, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/UmbrellaCorporation-SecretProjectLab/cloudos_messaging.git", ref: "760a267355ef6b3e3f601a44f52383516bfb5a51", override: true},
-      {:cloudos_manager_api, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/UmbrellaCorporation-SecretProjectLab/cloudos_manager_api.git", ref: "77bdb8a5c9a176fd307e2c77e63cab0215b657c3", override: true},
+      {:cloudos_messaging, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/UmbrellaCorporation-SecretProjectLab/cloudos_messaging.git", ref: "dffd03ee575f5dc8b4e357c0f7ec6adb85d77ad4", override: true},
+      {:cloudos_manager_api, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/UmbrellaCorporation-SecretProjectLab/cloudos_manager_api.git", ref: "1bbd406753efecf4fbdf0c41e19bfb39cb76b79d", override: true},
 
       {:timex, "~> 0.12.9"},
       {:timex_extensions, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/UmbrellaCorporation-SecretProjectLab/timex_extensions.git", ref: "master", override: true},

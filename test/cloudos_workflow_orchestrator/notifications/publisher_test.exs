@@ -2,7 +2,10 @@ defmodule CloudOS.WorkflowOrchestrator.Notifications.PublisherTest do
   use ExUnit.Case
 
   alias CloudOS.WorkflowOrchestrator.Notifications.Publisher
+  alias CloudOS.Messaging.ConnectionOptionsResolver
+  alias CloudOS.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
 
+  alias CloudOS.Messaging.AMQP.QueueBuilder
   alias CloudOS.Messaging.AMQP.ConnectionPool
   alias CloudOS.Messaging.AMQP.ConnectionPools
 
@@ -16,6 +19,12 @@ defmodule CloudOS.WorkflowOrchestrator.Notifications.PublisherTest do
   	:meck.new(ConnectionPool, [:passthrough])
   	:meck.expect(ConnectionPool, :publish, fn _, _, _, _ -> :ok end)
 
+    :meck.new(QueueBuilder, [:passthrough])
+    :meck.expect(QueueBuilder, :build, fn _,_,_ -> %CloudOS.Messaging.Queue{name: ""} end)      
+
+    :meck.new(ConnectionOptionsResolver, [:passthrough])
+    :meck.expect(ConnectionOptionsResolver, :get_for_broker, fn _, _ -> %AMQPConnectionOptions{} end)
+
   	state = %{
   	}
 
@@ -28,5 +37,7 @@ defmodule CloudOS.WorkflowOrchestrator.Notifications.PublisherTest do
   after
   	:meck.unload(ConnectionPool)
   	:meck.unload(ConnectionPools)
+    :meck.unload(QueueBuilder)
+    :meck.unload(ConnectionOptionsResolver)        
   end
 end

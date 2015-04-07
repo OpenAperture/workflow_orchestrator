@@ -9,9 +9,8 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
 	use GenServer
 
 	alias CloudOS.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
-	alias CloudOS.Messaging.AMQP.Exchange, as: AMQPExchange
+  alias CloudOS.Messaging.AMQP.QueueBuilder
   alias CloudOS.Messaging.AMQP.SubscriptionHandler
-  alias CloudOS.Messaging.Queue
 
   alias CloudOS.WorkflowOrchestrator.MessageManager
   alias CloudOS.WorkflowOrchestrator.Configuration
@@ -19,16 +18,13 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
 
   alias CloudOS.WorkflowOrchestrator.MessageManager
 
+  alias CloudOS.ManagerAPI
+
   @moduledoc """
   This module contains the logic to dispatch WorkflowOrchestrator messsages to the appropriate GenServer(s) 
   """  
 
-	@connection_options %AMQPConnectionOptions{
-      username: Configuration.get_messaging_config("MESSAGING_USERNAME", :username),
-      password: Configuration.get_messaging_config("MESSAGING_PASSWORD", :password),
-      virtual_host: Configuration.get_messaging_config("MESSAGING_VIRTUAL_HOST", :virtual_host),
-      host: Configuration.get_messaging_config("MESSAGING_HOST", :host)
-    }
+	@connection_options nil
 	use CloudOS.Messaging
 
   @doc """
@@ -48,12 +44,16 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
         {:error, reason}
     	{:ok, pid} ->
         try do
-      		case register_queues do
-            :ok -> {:ok, pid}
-            {:error, reason} -> 
-              Logger.error("Failed to register WorkflowOrchestrator queues:  #{inspect reason}")
-              {:ok, pid}
-          end    		
+          if Application.get_env(:autostart, :register_queues, false) do
+        		case register_queues do
+              :ok -> {:ok, pid}
+              {:error, reason} -> 
+                Logger.error("Failed to register WorkflowOrchestrator queues:  #{inspect reason}")
+                {:ok, pid}
+            end    		
+          else
+            {:ok, pid}
+          end
         rescue e in _ ->
           Logger.error("An error occurred registering WorkflowOrchestrator queues:  #{inspect e}")
           {:ok, pid}
@@ -71,16 +71,10 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
   @spec register_queues() :: :ok | {:error, String.t()}
   def register_queues do
     Logger.debug("Registering WorkflowOrchestrator queues...")
+    workflow_orchestration_queue = QueueBuilder.build(ManagerAPI.get_api, "workflow_orchestration", Configuration.get_current_exchange_id)
 
-    milestone_queue = %Queue{
-      name: "workflow_orchestration", 
-      exchange: %AMQPExchange{name: Configuration.get_messaging_config("MESSAGING_EXCHANGE", :exchange), options: [:durable]},
-      error_queue: "workflow_orchestration_error",
-      options: [durable: true, arguments: [{"x-dead-letter-exchange", :longstr, ""},{"x-dead-letter-routing-key", :longstr, "workflow_orchestration_error"}]],
-      binding_options: [routing_key: "workflow_orchestration"]
-    }
-
-    subscribe(milestone_queue, fn(payload, _meta, %{delivery_tag: delivery_tag} = async_info) -> 
+    options = CloudOS.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerAPI.get_api, Configuration.get_current_broker_id)
+    subscribe(options, workflow_orchestration_queue, fn(payload, _meta, %{delivery_tag: delivery_tag} = async_info) -> 
       MessageManager.track(async_info)
       execute_orchestration(payload, delivery_tag) 
     end)

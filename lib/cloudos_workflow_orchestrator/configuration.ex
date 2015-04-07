@@ -29,28 +29,10 @@ defmodule CloudOS.WorkflowOrchestrator.Configuration do
 
   The exchange identifier
   """ 
-  @spec get_current_exchange_id() :: String.t()
+  @spec get_current_broker_id() :: String.t()
   def get_current_broker_id do
     System.get_env()
     get_config("BROKER_ID", :cloudos_workflow_orchestrator, :broker_id)
-  end
-
-  @doc """
-  Method to retrieve a configuration option from the environment or config settings, for the messaging application
-   
-  ## Options
-   
-  The `env_name` option defines the environment variable name
-  
-  The `config_name` option defines the config variable name (atom)
-   
-  ## Return values
-   
-  Value
-  """ 
-  @spec get_messaging_config(String.t(), term) :: String.t()
-  def get_messaging_config(env_name, config_name) do
-    get_config(env_name, :cloudos_messaging, config_name)
   end
 
   @doc false
