@@ -30,7 +30,7 @@ defmodule CloudOS.WorkflowOrchestrator.Mixfile do
   defp deps do
     [
       {:poison, "~> 1.3.1"},
-      {:cloudos_messaging, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/UmbrellaCorporation-SecretProjectLab/cloudos_messaging.git", ref: "dffd03ee575f5dc8b4e357c0f7ec6adb85d77ad4", override: true},
+      {:cloudos_messaging, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/UmbrellaCorporation-SecretProjectLab/cloudos_messaging.git", ref: "86bf8e2418dcb53daa02f60ab2ee0541804f8b4d", override: true},
       {:cloudos_manager_api, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/UmbrellaCorporation-SecretProjectLab/cloudos_manager_api.git", ref: "1bbd406753efecf4fbdf0c41e19bfb39cb76b79d", override: true},
 
       {:timex, "~> 0.12.9"},
