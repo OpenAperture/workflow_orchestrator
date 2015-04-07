@@ -21,5 +21,5 @@ config :autostart,
 config :cloudos_manager_api, 
 	manager_url: System.get_env("CLOUDOS_MANAGER_URL"),
 	oauth_login_url: System.get_env("CLOUDOS_OAUTH_LOGIN_URL"),
-	client_id: System.get_env("CLOUDOS_OAUTH_CLIENT_ID"),
-	client_secret: System.get_env("CLOUDOS_OAUTH_CLIENT_SECRET")
+	oauth_client_id: System.get_env("CLOUDOS_OAUTH_CLIENT_ID"),
+	oauth_client_secret: System.get_env("CLOUDOS_OAUTH_CLIENT_SECRET")
