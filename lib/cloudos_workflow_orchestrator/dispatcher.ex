@@ -46,7 +46,7 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
         try do
           if Application.get_env(:autostart, :register_queues, false) do
         		case register_queues do
-              :ok -> {:ok, pid}
+              {:ok, _} -> {:ok, pid}
               {:error, reason} -> 
                 Logger.error("Failed to register WorkflowOrchestrator queues:  #{inspect reason}")
                 {:ok, pid}
