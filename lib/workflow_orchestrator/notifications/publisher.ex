@@ -7,22 +7,22 @@
 #
 require Logger
 
-defmodule CloudOS.WorkflowOrchestrator.Notifications.Publisher do
+defmodule OpenAperture.WorkflowOrchestrator.Notifications.Publisher do
 	use GenServer
 
   @moduledoc """
   This module contains the logic to publish messages to the Notifications system module
   """  
 
-	alias CloudOS.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
-	alias CloudOS.Messaging.AMQP.QueueBuilder
+	alias OpenAperture.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
+	alias OpenAperture.Messaging.AMQP.QueueBuilder
 
-	alias CloudOS.WorkflowOrchestrator.Configuration
+	alias OpenAperture.WorkflowOrchestrator.Configuration
 
-  alias CloudOS.ManagerAPI
+  alias OpenAperture.ManagerApi
 
 	@connection_options nil
-	use CloudOS.Messaging
+	use OpenAperture.Messaging
 
   @doc """
   Specific start_link implementation (required by the supervisor)
@@ -84,9 +84,9 @@ defmodule CloudOS.WorkflowOrchestrator.Notifications.Publisher do
   """
   @spec handle_cast({:hipchat, Map}, Map) :: {:noreply, Map}
   def handle_cast({:hipchat, payload}, state) do
-    hipchat_queue = QueueBuilder.build(ManagerAPI.get_api, "notifications_hipchat", Configuration.get_current_exchange_id)
+    hipchat_queue = QueueBuilder.build(ManagerApi.get_api, "notifications_hipchat", Configuration.get_current_exchange_id)
 
-    options = CloudOS.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerAPI.get_api, Configuration.get_current_broker_id)
+    options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
 		case publish(options, hipchat_queue, payload) do
 			:ok -> Logger.debug("Successfully published HipChat notification")
 			{:error, reason} -> Logger.error("Failed to publish HipChat notification:  #{inspect reason}")

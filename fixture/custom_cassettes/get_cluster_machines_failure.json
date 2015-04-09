@@ -4,13 +4,13 @@
       "body": "",
       "headers": {
         "Accept": "application/json",
-        "User-Agent": "cloudos-manager-api"
+        "User-Agent": "openaperture-manager-api"
       },
       "method": "get",
       "options": {
         "connect_timeout": 5000
       },
-      "url": "https://cloudos-mgr.host.co/clusters/123abc/machines"
+      "url": "https://openaperture-mgr.host.co/clusters/123abc/machines"
     },
     "response": {
       "body": "",

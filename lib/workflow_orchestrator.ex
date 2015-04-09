@@ -1,14 +1,14 @@
 #
-# == cloudos_workflow_orchestrator.ex
+# == workflow_orchestrator.ex
 #
-# This module contains definition the CloudOS Workflow Orchestrator implementation
+# This module contains definition the OpenAperture Workflow Orchestrator implementation
 #
 require Logger
-defmodule CloudOS.WorkflowOrchestrator do
+defmodule OpenAperture.WorkflowOrchestrator do
 	use Application
 
   @moduledoc """
-  This module contains definition the CloudOS WorkflowOrchestrator implementation
+  This module contains definition the OpenAperture WorkflowOrchestrator implementation
   """  
 
   @doc """
@@ -48,10 +48,10 @@ defmodule CloudOS.WorkflowOrchestrator do
   @spec start(atom, [any]) :: :ok | {:error, String.t()}
   def start(_type, _args) do
     import Supervisor.Spec, warn: false
-    Logger.info("Starting CloudOS.WorkflowOrchestrator...")
+    Logger.info("Starting OpenAperture.WorkflowOrchestrator...")
     children = [
       # Define workers and child supervisors to be supervised
-      supervisor(CloudOS.WorkflowOrchestrator.Supervisor, [])
+      supervisor(OpenAperture.WorkflowOrchestrator.Supervisor, [])
     ]
 
     opts = [strategy: :one_for_one, name: __MODULE__]

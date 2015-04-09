@@ -5,7 +5,7 @@
 #
 require Logger
 
-defmodule CloudOS.WorkflowOrchestrator.Supervisor do
+defmodule OpenAperture.WorkflowOrchestrator.Supervisor do
   use Supervisor
 
   @moduledoc """
@@ -23,7 +23,7 @@ defmodule CloudOS.WorkflowOrchestrator.Supervisor do
   """
   @spec start_link() :: {:ok, pid} | {:error, String.t()} 
   def start_link do
-    Logger.info("Starting CloudOS.WorkflowOrchestrator.Supervisor...")
+    Logger.info("Starting OpenAperture.WorkflowOrchestrator.Supervisor...")
     :supervisor.start_link(__MODULE__, [])
   end
 
@@ -44,13 +44,13 @@ defmodule CloudOS.WorkflowOrchestrator.Supervisor do
 
     children = [
       # Define workers and child supervisors to be supervised
-      worker(CloudOS.WorkflowOrchestrator.Dispatcher, []),
-      worker(CloudOS.WorkflowOrchestrator.Notifications.Publisher, []),
-      worker(CloudOS.WorkflowOrchestrator.Builder.DockerHostResolver, []),
-      worker(CloudOS.WorkflowOrchestrator.Builder.Publisher, []),
-      worker(CloudOS.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolver, []),
-      worker(CloudOS.WorkflowOrchestrator.Deployer.Publisher, []),
-      worker(CloudOS.WorkflowOrchestrator.MessageManager, [])
+      worker(OpenAperture.WorkflowOrchestrator.Dispatcher, []),
+      worker(OpenAperture.WorkflowOrchestrator.Notifications.Publisher, []),
+      worker(OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver, []),
+      worker(OpenAperture.WorkflowOrchestrator.Builder.Publisher, []),
+      worker(OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolver, []),
+      worker(OpenAperture.WorkflowOrchestrator.Deployer.Publisher, []),
+      worker(OpenAperture.WorkflowOrchestrator.MessageManager, [])
     ]
 
     opts = [strategy: :one_for_one, name: __MODULE__]

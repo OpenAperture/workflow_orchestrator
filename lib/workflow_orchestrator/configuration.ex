@@ -3,7 +3,7 @@
 #
 # This module contains the logic to retrieve configuration from either the environment or configuration files
 #
-defmodule CloudOS.WorkflowOrchestrator.Configuration do
+defmodule OpenAperture.WorkflowOrchestrator.Configuration do
 
   @doc """
   Method to retrieve the currently assigned exchange id
@@ -17,7 +17,7 @@ defmodule CloudOS.WorkflowOrchestrator.Configuration do
   @spec get_current_exchange_id() :: String.t()
   def get_current_exchange_id do
     System.get_env()
-    get_config("EXCHANGE_ID", :cloudos_workflow_orchestrator, :exchange_id)
+    get_config("EXCHANGE_ID", :openaperture_workflow_orchestrator, :exchange_id)
   end
 
   @doc """
@@ -32,7 +32,7 @@ defmodule CloudOS.WorkflowOrchestrator.Configuration do
   @spec get_current_broker_id() :: String.t()
   def get_current_broker_id do
     System.get_env()
-    get_config("BROKER_ID", :cloudos_workflow_orchestrator, :broker_id)
+    get_config("BROKER_ID", :openaperture_workflow_orchestrator, :broker_id)
   end
 
   @doc false

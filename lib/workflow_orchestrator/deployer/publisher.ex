@@ -5,23 +5,23 @@
 #
 require Logger
 
-defmodule CloudOS.WorkflowOrchestrator.Deployer.Publisher do
+defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
 	use GenServer
 
   @moduledoc """
   This module contains the logic to publish messages to the Deployer system module
   """  
 
-  alias CloudOS.Messaging.ConnectionOptionsResolver
-  alias CloudOS.Messaging.AMQP.QueueBuilder
+  alias OpenAperture.Messaging.ConnectionOptionsResolver
+  alias OpenAperture.Messaging.AMQP.QueueBuilder
 
-	alias CloudOS.WorkflowOrchestrator.Configuration
-  alias CloudOS.WorkflowOrchestrator.Dispatcher
+	alias OpenAperture.WorkflowOrchestrator.Configuration
+  alias OpenAperture.WorkflowOrchestrator.Dispatcher
 
-  alias CloudOS.ManagerAPI
+  alias OpenAperture.ManagerApi
 
 	@connection_options nil
-	use CloudOS.Messaging
+	use OpenAperture.Messaging
 
   @doc """
   Specific start_link implementation (required by the supervisor)
@@ -70,10 +70,10 @@ defmodule CloudOS.WorkflowOrchestrator.Deployer.Publisher do
   """
   @spec handle_cast({:deploy, String.t(), String.t(), Map}, Map) :: {:noreply, Map}
   def handle_cast({:deploy, delivery_tag, messaging_exchange_id, payload}, state) do
-    deploy_queue = QueueBuilder.build(ManagerAPI.get_api, "deployer", messaging_exchange_id)
+    deploy_queue = QueueBuilder.build(ManagerApi.get_api, "deployer", messaging_exchange_id)
 
     connection_options = ConnectionOptionsResolver.resolve(
-      ManagerAPI.get_api, 
+      ManagerApi.get_api, 
       Configuration.get_current_broker_id,
       Configuration.get_current_exchange_id,
       messaging_exchange_id

@@ -6,7 +6,7 @@
 #
 require Logger
 
-defmodule CloudOS.WorkflowOrchestrator.MessageManager do
+defmodule OpenAperture.WorkflowOrchestrator.MessageManager do
 
   @moduledoc """
   This module contains the logic for associating message references with their subscription handlers

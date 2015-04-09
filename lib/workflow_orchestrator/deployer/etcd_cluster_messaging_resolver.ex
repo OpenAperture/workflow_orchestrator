@@ -5,15 +5,15 @@
 #
 require Logger
 
-defmodule CloudOS.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolver do
+defmodule OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolver do
 	use GenServer
 
   @moduledoc """
   This module contains the logic to resolve the correct MessagingExchange for an EtcdCluster
   """  
 
-  alias CloudOS.ManagerAPI
-  alias CloudOS.ManagerAPI.EtcdCluster
+  alias OpenAperture.ManagerApi
+  alias OpenAperture.ManagerApi.EtcdCluster
 
   @doc """
   Specific start_link implementation (required by the supervisor)
@@ -78,7 +78,7 @@ defmodule CloudOS.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolver do
   """
   @spec get_exchange_for_cluster(Map) :: List
   def get_exchange_for_cluster(etcd_token) do
-    case EtcdCluster.get_cluster!(ManagerAPI.get_api, etcd_token) do
+    case EtcdCluster.get_cluster!(ManagerApi.get_api, etcd_token) do
       nil -> nil
       cluster -> cluster["messaging_exchange_id"]
     end

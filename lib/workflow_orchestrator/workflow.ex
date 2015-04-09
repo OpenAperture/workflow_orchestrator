@@ -6,20 +6,20 @@
 require Logger
 require Timex.Date
 
-defmodule CloudOS.WorkflowOrchestrator.Workflow do
+defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   use Timex
 
   @moduledoc """
   This module contains the for interacting with a Workflow
   """    
 
-  alias CloudOS.WorkflowOrchestrator.Notifications.Publisher, as: NotificationsPublisher
+  alias OpenAperture.WorkflowOrchestrator.Notifications.Publisher, as: NotificationsPublisher
 
-  alias CloudOS.ManagerAPI
-  alias CloudOS.ManagerAPI.Workflow, as: WorkflowAPI
-  alias CloudOS.ManagerAPI.Response
+  alias OpenAperture.ManagerApi
+  alias OpenAperture.ManagerApi.Workflow, as: WorkflowAPI
+  alias OpenAperture.ManagerApi.Response
 
-  alias CloudOS.Timex.Extensions, as: TimexExtensions
+  alias OpenAperture.Timex.Extensions, as: TimexExtensions
 
   @doc """
   This module contains the for interacting with a Workflow
@@ -47,8 +47,8 @@ defmodule CloudOS.WorkflowOrchestrator.Workflow do
     raw_workflow_info = Map.merge(defaults, payload)
 
     result = if raw_workflow_info[:workflow_id] == nil do
-	    case WorkflowAPI.create_workflow!(ManagerAPI.get_api, raw_workflow_info) do
-	      nil -> {:error, "Failed to create a new Workflow with the ManagerAPI!"}
+	    case WorkflowAPI.create_workflow!(ManagerApi.get_api, raw_workflow_info) do
+	      nil -> {:error, "Failed to create a new Workflow with the ManagerApi!"}
 	      workflow_id -> 
           raw_workflow_info = Map.put(raw_workflow_info, :workflow_id, workflow_id)
           raw_workflow_info = Map.put(raw_workflow_info, :id, workflow_id)
@@ -226,7 +226,7 @@ defmodule CloudOS.WorkflowOrchestrator.Workflow do
   """
   @spec send_notification(Map, term, String.t()) :: Map
 	def send_notification(workflow_info, is_success, message) do
-		prefix = "[CloudOS Workflow][#{workflow_info[:workflow_id]}]"
+		prefix = "[OpenAperture Workflow][#{workflow_info[:workflow_id]}]"
     Logger.debug("#{prefix} #{message}")
     workflow_info = add_event_to_log(workflow_info, message, prefix)
     NotificationsPublisher.hipchat_notification(is_success, prefix, message)
@@ -252,7 +252,7 @@ defmodule CloudOS.WorkflowOrchestrator.Workflow do
   @spec add_event_to_log(Map, String.t(), String.t()) :: Map
   def add_event_to_log(workflow_info, event, prefix \\ nil) do
     if (prefix == nil) do
-      prefix = "[CloudOS Workflow][#{workflow_info[:workflow_id]}]"
+      prefix = "[OpenAperture Workflow][#{workflow_info[:workflow_id]}]"
     end
 
     event_log = workflow_info[:event_log]
@@ -296,7 +296,7 @@ defmodule CloudOS.WorkflowOrchestrator.Workflow do
       event_log: Poison.encode!(workflow_info[:event_log]),
     }
 		
-    case WorkflowAPI.update_workflow(ManagerAPI.get_api, workflow_info[:workflow_id], workflow_payload) do
+    case WorkflowAPI.update_workflow(ManagerApi.get_api, workflow_info[:workflow_id], workflow_payload) do
       %Response{status: 204} -> :ok
       %Response{status: status} -> 
         error_message = "Failed to save workflow; server returned #{status}"

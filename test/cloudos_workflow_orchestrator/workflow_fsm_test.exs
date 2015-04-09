@@ -1,16 +1,16 @@
-defmodule CloudOS.WorkflowOrchestrator.WorkflowFSMTest do
+defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   use ExUnit.Case
   use ExVCR.Mock, adapter: ExVCR.Adapter.Httpc, options: [clear_mock: true]
 
-  alias CloudOS.WorkflowOrchestrator.Workflow
-  alias CloudOS.WorkflowOrchestrator.WorkflowFSM
+  alias OpenAperture.WorkflowOrchestrator.Workflow
+  alias OpenAperture.WorkflowOrchestrator.WorkflowFSM
 
-  alias CloudOS.WorkflowOrchestrator.Dispatcher
+  alias OpenAperture.WorkflowOrchestrator.Dispatcher
 
-  alias CloudOS.WorkflowOrchestrator.Builder.DockerHostResolver
-  alias CloudOS.WorkflowOrchestrator.Builder.Publisher, as: BuilderPublisher
-  alias CloudOS.WorkflowOrchestrator.Deployer.Publisher, as: DeployerPublisher
-  alias CloudOS.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolver
+  alias OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver
+  alias OpenAperture.WorkflowOrchestrator.Builder.Publisher, as: BuilderPublisher
+  alias OpenAperture.WorkflowOrchestrator.Deployer.Publisher, as: DeployerPublisher
+  alias OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolver
 
   # ============================
   # start_link tests

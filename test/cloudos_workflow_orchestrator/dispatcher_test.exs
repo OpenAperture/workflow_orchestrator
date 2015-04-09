@@ -1,20 +1,20 @@
-defmodule CloudOS.WorkflowOrchestrator.DispatcherTests do
+defmodule OpenAperture.WorkflowOrchestrator.DispatcherTests do
   use ExUnit.Case
   use ExVCR.Mock, adapter: ExVCR.Adapter.Httpc
 
-  alias CloudOS.WorkflowOrchestrator.Dispatcher
+  alias OpenAperture.WorkflowOrchestrator.Dispatcher
 
-  alias CloudOS.Messaging.AMQP.ConnectionPool
-  alias CloudOS.Messaging.AMQP.ConnectionPools
-  alias CloudOS.Messaging.AMQP.SubscriptionHandler
-  alias CloudOS.Messaging.ConnectionOptionsResolver
-  alias CloudOS.Messaging.AMQP.Exchange, as: AMQPExchange
-  alias CloudOS.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
-  alias CloudOS.Messaging.AMQP.QueueBuilder
+  alias OpenAperture.Messaging.AMQP.ConnectionPool
+  alias OpenAperture.Messaging.AMQP.ConnectionPools
+  alias OpenAperture.Messaging.AMQP.SubscriptionHandler
+  alias OpenAperture.Messaging.ConnectionOptionsResolver
+  alias OpenAperture.Messaging.AMQP.Exchange, as: AMQPExchange
+  alias OpenAperture.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
+  alias OpenAperture.Messaging.AMQP.QueueBuilder
 
-  alias CloudOS.WorkflowOrchestrator.Configuration
-  alias CloudOS.WorkflowOrchestrator.WorkflowFSM
-  alias CloudOS.WorkflowOrchestrator.MessageManager
+  alias OpenAperture.WorkflowOrchestrator.Configuration
+  alias OpenAperture.WorkflowOrchestrator.WorkflowFSM
+  alias OpenAperture.WorkflowOrchestrator.MessageManager
   
   # ===================================
   # register_queues tests
@@ -30,7 +30,7 @@ defmodule CloudOS.WorkflowOrchestrator.DispatcherTests do
     :meck.expect(ConnectionOptionsResolver, :get_for_broker, fn _, _ -> %AMQPConnectionOptions{} end)
 
     :meck.new(QueueBuilder, [:passthrough])
-    :meck.expect(QueueBuilder, :build, fn _,_,_ -> %CloudOS.Messaging.Queue{name: ""} end)      
+    :meck.expect(QueueBuilder, :build, fn _,_,_ -> %OpenAperture.Messaging.Queue{name: ""} end)      
 
     assert Dispatcher.register_queues == :ok
   after
@@ -51,7 +51,7 @@ defmodule CloudOS.WorkflowOrchestrator.DispatcherTests do
     :meck.expect(ConnectionOptionsResolver, :get_for_broker, fn _, _ -> %AMQPConnectionOptions{} end)    
 
     :meck.new(QueueBuilder, [:passthrough])
-    :meck.expect(QueueBuilder, :build, fn _,_,_ -> %CloudOS.Messaging.Queue{name: ""} end)      
+    :meck.expect(QueueBuilder, :build, fn _,_,_ -> %OpenAperture.Messaging.Queue{name: ""} end)      
 
     assert Dispatcher.register_queues == {:error, "bad news bears"}
   after

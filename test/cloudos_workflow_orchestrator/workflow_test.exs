@@ -1,11 +1,11 @@
-defmodule CloudOS.WorkflowOrchestrator.WorkflowTest do
+defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
   use ExUnit.Case
 
-  alias CloudOS.WorkflowOrchestrator.Workflow
+  alias OpenAperture.WorkflowOrchestrator.Workflow
 
-  alias CloudOS.WorkflowOrchestrator.Notifications.Publisher, as: NotificationsPublisher
-  alias CloudOS.ManagerAPI.Workflow, as: WorkflowAPI
-  alias CloudOS.ManagerAPI.Response
+  alias OpenAperture.WorkflowOrchestrator.Notifications.Publisher, as: NotificationsPublisher
+  alias OpenAperture.ManagerApi.Workflow, as: WorkflowAPI
+  alias OpenAperture.ManagerApi.Response
 
   # ============================
   # create_from_payload tests
@@ -62,7 +62,7 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowTest do
 
     {result, reason} = Workflow.create_from_payload(payload)
     assert result == :error
-    assert reason == "Failed to create a new Workflow with the ManagerAPI!"
+    assert reason == "Failed to create a new Workflow with the ManagerApi!"
   after
   	:meck.unload(WorkflowAPI)   
   end

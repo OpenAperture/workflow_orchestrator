@@ -1,4 +1,4 @@
-# CloudOS.WorkflowOrchestrator
+# OpenAperture.WorkflowOrchestrator
 
 The WorkflowOrchestrator module provides a standardized mechanism to orchestrate Workflow events for builds and deploys and publish messages to the relevant consumers.  In order to successfully orchestrate messages, there are a few deployment-related assumptions:
 
@@ -7,7 +7,7 @@ The WorkflowOrchestrator module provides a standardized mechanism to orchestrate
 
 ## Module Responsibilities
 
-The WorkflowOrchestrator module is responsible for the following actions within CloudOS:
+The WorkflowOrchestrator module is responsible for the following actions within OpenAperture:
 
 * Identify next Workflow step (via milestones), and publish request
 * If “workflow_completed” flag is true, stop executing Workflow milestones.
@@ -16,7 +16,7 @@ The WorkflowOrchestrator module is responsible for the following actions within 
 
 ## Messaging / Communication
 
-The following message(s) may be sent to the WorkflowOrchestrator.  A Workflow is a CloudOS construct that can be created/retrieved at https://cloudos-manager/workflow.
+The following message(s) may be sent to the WorkflowOrchestrator.  A Workflow is a OpenAperture construct that can be created/retrieved at /workflow.
 
 * Start/Continue a Workflow
 	* Queue:  workflow_orchestration
@@ -58,24 +58,24 @@ The following configuration values must be defined either as environment variabl
   * Environment Variable:  BROKER_ID
 * Manager URL
   * Type: String
-  * Description: The url of the CloudOS Manager
-  * Environment Variable:  CLOUDOS_MANAGER_URL
-  * Environment Configuration (.exs): :cloudos_manager_api, :manager_url
+  * Description: The url of the OpenAperture Manager
+  * Environment Variable:  MANAGER_URL
+  * Environment Configuration (.exs): :openaperture_manager_api, :manager_url
 * OAuth Login URL
   * Type: String
   * Description: The login url of the OAuth2 server
-  * Environment Variable:  CLOUDOS_OAUTH_LOGIN_URL
-  * Environment Configuration (.exs): :cloudos_manager_api, :oauth_login_url
+  * Environment Variable:  OAUTH_LOGIN_URL
+  * Environment Configuration (.exs): :openaperture_manager_api, :oauth_login_url
 * OAuth Client ID
   * Type: String
-  * Description: The OAuth2 client id to be used for authenticating with the CloudOS Manager
-  * Environment Variable:  CLOUDOS_OAUTH_CLIENT_ID
-  * Environment Configuration (.exs): :cloudos_manager_api, :oauth_client_id
+  * Description: The OAuth2 client id to be used for authenticating with the OpenAperture Manager
+  * Environment Variable:  OAUTH_CLIENT_ID
+  * Environment Configuration (.exs): :openaperture_manager_api, :oauth_client_id
 * OAuth Client Secret
   * Type: String
-  * Description: The OAuth2 client secret to be used for authenticating with the CloudOS Manager
-  * Environment Variable:  CLOUDOS_OAUTH_CLIENT_SECRET
-  * Environment Configuration (.exs): :cloudos_manager_api, :oauth_client_secret
+  * Description: The OAuth2 client secret to be used for authenticating with the OpenAperture Manager
+  * Environment Variable:  OAUTH_CLIENT_SECRET
+  * Environment Configuration (.exs): :openaperture_manager_api, :oauth_client_secret
 
 ## Building & Testing
 

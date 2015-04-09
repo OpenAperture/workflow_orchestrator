@@ -4,13 +4,13 @@
       "body": "",
       "headers": {
         "Accept": "application/json",
-        "User-Agent": "cloudos-manager-api"
+        "User-Agent": "openaperture-manager-api"
       },
       "method": "get",
       "options": {
         "connect_timeout": 5000
       },
-      "url": "https://cloudos-mgr.host.co/messaging/exchanges/1/brokers"
+      "url": "https://openaperture-mgr.host.co/messaging/exchanges/1/brokers"
     },
     "response": {
       "body": "[{\"id\": 1}]",
@@ -28,13 +28,13 @@
       "body": "",
       "headers": {
         "Accept": "application/json",
-        "User-Agent": "cloudos-manager-api"
+        "User-Agent": "openaperture-manager-api"
       },
       "method": "get",
       "options": {
         "connect_timeout": 5000
       },
-      "url": "https://cloudos-mgr.host.co/messaging/exchanges/messaging_exchange_id/brokers"
+      "url": "https://openaperture-mgr.host.co/messaging/exchanges/messaging_exchange_id/brokers"
     },
     "response": {
       "body": "[{\"id\": 1}]",
@@ -52,13 +52,13 @@
       "body": "",
       "headers": {
         "Accept": "application/json",
-        "User-Agent": "cloudos-manager-api"
+        "User-Agent": "openaperture-manager-api"
       },
       "method": "get",
       "options": {
         "connect_timeout": 5000
       },
-      "url": "https://cloudos-mgr.host.co/messaging/brokers/1/connections"
+      "url": "https://openaperture-mgr.host.co/messaging/brokers/1/connections"
     },
     "response": {
       "body": "[{\"id\": 1, \"username\": \"test\"}]",

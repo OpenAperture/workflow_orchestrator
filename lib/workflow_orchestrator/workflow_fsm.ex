@@ -19,7 +19,7 @@
 require Logger
 require Timex.Date
 
-defmodule CloudOS.WorkflowOrchestrator.WorkflowFSM do
+defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   @moduledoc """
   This module contains the gen_fsm for Workflow Orchestration
@@ -29,13 +29,13 @@ defmodule CloudOS.WorkflowOrchestrator.WorkflowFSM do
 
   @behaviour :gen_fsm
 
-  alias CloudOS.WorkflowOrchestrator.Workflow
-  alias CloudOS.WorkflowOrchestrator.Configuration
-  alias CloudOS.WorkflowOrchestrator.Dispatcher
-  alias CloudOS.WorkflowOrchestrator.Builder.DockerHostResolver
-  alias CloudOS.WorkflowOrchestrator.Builder.Publisher, as: BuilderPublisher
-  alias CloudOS.WorkflowOrchestrator.Deployer.Publisher, as: DeployerPublisher
-  alias CloudOS.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolver
+  alias OpenAperture.WorkflowOrchestrator.Workflow
+  alias OpenAperture.WorkflowOrchestrator.Configuration
+  alias OpenAperture.WorkflowOrchestrator.Dispatcher
+  alias OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver
+  alias OpenAperture.WorkflowOrchestrator.Builder.Publisher, as: BuilderPublisher
+  alias OpenAperture.WorkflowOrchestrator.Deployer.Publisher, as: DeployerPublisher
+  alias OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolver
 
   @doc """
   Method to start a WorkflowFSM

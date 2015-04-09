@@ -1,13 +1,13 @@
-defmodule CloudOS.WorkflowOrchestrator.Notifications.PublisherTest do
+defmodule OpenAperture.WorkflowOrchestrator.Notifications.PublisherTest do
   use ExUnit.Case
 
-  alias CloudOS.WorkflowOrchestrator.Notifications.Publisher
-  alias CloudOS.Messaging.ConnectionOptionsResolver
-  alias CloudOS.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
+  alias OpenAperture.WorkflowOrchestrator.Notifications.Publisher
+  alias OpenAperture.Messaging.ConnectionOptionsResolver
+  alias OpenAperture.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
 
-  alias CloudOS.Messaging.AMQP.QueueBuilder
-  alias CloudOS.Messaging.AMQP.ConnectionPool
-  alias CloudOS.Messaging.AMQP.ConnectionPools
+  alias OpenAperture.Messaging.AMQP.QueueBuilder
+  alias OpenAperture.Messaging.AMQP.ConnectionPool
+  alias OpenAperture.Messaging.AMQP.ConnectionPools
 
   #=========================
   # handle_cast({:hipchat, payload}) tests
@@ -20,7 +20,7 @@ defmodule CloudOS.WorkflowOrchestrator.Notifications.PublisherTest do
   	:meck.expect(ConnectionPool, :publish, fn _, _, _, _ -> :ok end)
 
     :meck.new(QueueBuilder, [:passthrough])
-    :meck.expect(QueueBuilder, :build, fn _,_,_ -> %CloudOS.Messaging.Queue{name: ""} end)      
+    :meck.expect(QueueBuilder, :build, fn _,_,_ -> %OpenAperture.Messaging.Queue{name: ""} end)      
 
     :meck.new(ConnectionOptionsResolver, [:passthrough])
     :meck.expect(ConnectionOptionsResolver, :get_for_broker, fn _, _ -> %AMQPConnectionOptions{} end)

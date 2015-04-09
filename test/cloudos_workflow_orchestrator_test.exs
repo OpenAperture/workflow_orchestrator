@@ -1,4 +1,4 @@
-defmodule CloudOS.WorkflowOrchestratorTest do
+defmodule OpenAperture.WorkflowOrchestratorTest do
   use ExUnit.Case
 
   test "the truth" do

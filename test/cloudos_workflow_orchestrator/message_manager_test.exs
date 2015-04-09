@@ -1,8 +1,8 @@
-defmodule CloudOS.WorkflowOrchestrator.MessageManagerTests do
+defmodule OpenAperture.WorkflowOrchestrator.MessageManagerTests do
   use ExUnit.Case
   use ExVCR.Mock, adapter: ExVCR.Adapter.Httpc
 
-  alias CloudOS.WorkflowOrchestrator.MessageManager
+  alias OpenAperture.WorkflowOrchestrator.MessageManager
 
   # ===================================
   # track tests

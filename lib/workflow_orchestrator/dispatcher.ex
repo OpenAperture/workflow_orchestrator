@@ -5,27 +5,27 @@
 #
 require Logger
 
-defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
+defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
 	use GenServer
 
-	alias CloudOS.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
-  alias CloudOS.Messaging.AMQP.QueueBuilder
-  alias CloudOS.Messaging.AMQP.SubscriptionHandler
+	alias OpenAperture.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
+  alias OpenAperture.Messaging.AMQP.QueueBuilder
+  alias OpenAperture.Messaging.AMQP.SubscriptionHandler
 
-  alias CloudOS.WorkflowOrchestrator.MessageManager
-  alias CloudOS.WorkflowOrchestrator.Configuration
-  alias CloudOS.WorkflowOrchestrator.WorkflowFSM
+  alias OpenAperture.WorkflowOrchestrator.MessageManager
+  alias OpenAperture.WorkflowOrchestrator.Configuration
+  alias OpenAperture.WorkflowOrchestrator.WorkflowFSM
 
-  alias CloudOS.WorkflowOrchestrator.MessageManager
+  alias OpenAperture.WorkflowOrchestrator.MessageManager
 
-  alias CloudOS.ManagerAPI
+  alias OpenAperture.ManagerApi
 
   @moduledoc """
   This module contains the logic to dispatch WorkflowOrchestrator messsages to the appropriate GenServer(s) 
   """  
 
 	@connection_options nil
-	use CloudOS.Messaging
+	use OpenAperture.Messaging
 
   @doc """
   Specific start_link implementation (required by the supervisor)
@@ -40,7 +40,7 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
   def start_link do
     case GenServer.start_link(__MODULE__, %{}, name: __MODULE__) do
     	{:error, reason} -> 
-        Logger.error("Failed to start CloudOS WorkflowOrchestrator:  #{inspect reason}")
+        Logger.error("Failed to start OpenAperture WorkflowOrchestrator:  #{inspect reason}")
         {:error, reason}
     	{:ok, pid} ->
         try do
@@ -71,9 +71,9 @@ defmodule CloudOS.WorkflowOrchestrator.Dispatcher do
   @spec register_queues() :: :ok | {:error, String.t()}
   def register_queues do
     Logger.debug("Registering WorkflowOrchestrator queues...")
-    workflow_orchestration_queue = QueueBuilder.build(ManagerAPI.get_api, "workflow_orchestration", Configuration.get_current_exchange_id)
+    workflow_orchestration_queue = QueueBuilder.build(ManagerApi.get_api, "workflow_orchestration", Configuration.get_current_exchange_id)
 
-    options = CloudOS.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerAPI.get_api, Configuration.get_current_broker_id)
+    options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
     subscribe(options, workflow_orchestration_queue, fn(payload, _meta, %{delivery_tag: delivery_tag} = async_info) -> 
       MessageManager.track(async_info)
       execute_orchestration(payload, delivery_tag) 

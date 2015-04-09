@@ -5,17 +5,17 @@
 #
 require Logger
 
-defmodule CloudOS.WorkflowOrchestrator.Builder.DockerHostResolver do
+defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 	use GenServer
 
   @moduledoc """
   This module contains the logic to resolve a Docker build cluster
   """  
 
-  alias CloudOS.WorkflowOrchestrator.Configuration
-  alias CloudOS.ManagerAPI
-  alias CloudOS.ManagerAPI.EtcdCluster
-  alias CloudOS.ManagerAPI.MessagingExchange  
+  alias OpenAperture.WorkflowOrchestrator.Configuration
+  alias OpenAperture.ManagerApi
+  alias OpenAperture.ManagerApi.EtcdCluster
+  alias OpenAperture.ManagerApi.MessagingExchange  
 
   @doc """
   Specific start_link implementation (required by the supervisor)
@@ -114,7 +114,7 @@ defmodule CloudOS.WorkflowOrchestrator.Builder.DockerHostResolver do
   def get_local_build_clusters do
     #1.  Lookup any clusters that exist in the current exchange
     Logger.debug("Looking for build clusters in exchange #{Configuration.get_current_exchange_id}...")
-    case MessagingExchange.exchange_clusters!(ManagerAPI.get_api, Configuration.get_current_exchange_id, %{allow_docker_builds: true}) do
+    case MessagingExchange.exchange_clusters!(ManagerApi.get_api, Configuration.get_current_exchange_id, %{allow_docker_builds: true}) do
       nil -> nil
       [] -> nil
       docker_build_clusters -> 
@@ -135,7 +135,7 @@ defmodule CloudOS.WorkflowOrchestrator.Builder.DockerHostResolver do
   def get_global_build_clusters do
     #2.  If no clusters are availabe in the exchange, check globally for clusters
     Logger.debug("No build clusters are available in exchange #{Configuration.get_current_exchange_id}, checking globally...")
-    case EtcdCluster.list!(ManagerAPI.get_api, %{allow_docker_builds: true}) do
+    case EtcdCluster.list!(ManagerApi.get_api, %{allow_docker_builds: true}) do
       nil -> nil
       [] -> nil
       docker_build_clusters -> 

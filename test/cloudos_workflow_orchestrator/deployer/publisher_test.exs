@@ -1,23 +1,23 @@
-defmodule CloudOS.WorkflowOrchestrator.Deployer.PublisherTest do
+defmodule OpenAperture.WorkflowOrchestrator.Deployer.PublisherTest do
   use ExUnit.Case
   use ExVCR.Mock, adapter: ExVCR.Adapter.Httpc, options: [clear_mock: true]
 
-  alias CloudOS.WorkflowOrchestrator.Deployer.Publisher, as: DeployerPublisher
-  alias CloudOS.WorkflowOrchestrator.Dispatcher
-  alias CloudOS.Messaging.ConnectionOptionsResolver
-  alias CloudOS.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
+  alias OpenAperture.WorkflowOrchestrator.Deployer.Publisher, as: DeployerPublisher
+  alias OpenAperture.WorkflowOrchestrator.Dispatcher
+  alias OpenAperture.Messaging.ConnectionOptionsResolver
+  alias OpenAperture.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
 
-  alias CloudOS.Messaging.AMQP.QueueBuilder
-  alias CloudOS.Messaging.AMQP.ConnectionPool
-  alias CloudOS.Messaging.AMQP.ConnectionPools
+  alias OpenAperture.Messaging.AMQP.QueueBuilder
+  alias OpenAperture.Messaging.AMQP.ConnectionPool
+  alias OpenAperture.Messaging.AMQP.ConnectionPools
 
   setup_all _context do
-    :meck.new(CloudosAuth.Client, [:passthrough])
-    :meck.expect(CloudosAuth.Client, :get_token, fn _, _, _ -> "abc" end)
+    :meck.new(OpenAperture.Auth.Client, [:passthrough])
+    :meck.expect(OpenAperture.Auth.Client, :get_token, fn _, _, _ -> "abc" end)
 
     on_exit _context, fn ->
       try do
-        :meck.unload CloudosAuth.Client
+        :meck.unload OpenAperture.Auth.Client
       rescue _ -> IO.puts "" end
     end    
     :ok
@@ -45,7 +45,7 @@ defmodule CloudOS.WorkflowOrchestrator.Deployer.PublisherTest do
       :meck.expect(Dispatcher, :acknowledge, fn _ -> :ok end)
 
       :meck.new(QueueBuilder, [:passthrough])
-      :meck.expect(QueueBuilder, :build, fn _,_,_ -> %CloudOS.Messaging.Queue{name: ""} end)      
+      :meck.expect(QueueBuilder, :build, fn _,_,_ -> %OpenAperture.Messaging.Queue{name: ""} end)      
 
       :meck.new(ConnectionOptionsResolver, [:passthrough])
       :meck.expect(ConnectionOptionsResolver, :resolve, fn _, _, _, _ -> %AMQPConnectionOptions{} end)
@@ -78,7 +78,7 @@ defmodule CloudOS.WorkflowOrchestrator.Deployer.PublisherTest do
       :meck.expect(Dispatcher, :reject, fn _ -> :ok end)
 
       :meck.new(QueueBuilder, [:passthrough])
-      :meck.expect(QueueBuilder, :build, fn _,_,_ -> %CloudOS.Messaging.Queue{name: ""} end)      
+      :meck.expect(QueueBuilder, :build, fn _,_,_ -> %OpenAperture.Messaging.Queue{name: ""} end)      
 
       :meck.new(ConnectionOptionsResolver, [:passthrough])
       :meck.expect(ConnectionOptionsResolver, :resolve, fn _, _, _, _ -> %AMQPConnectionOptions{} end)      
