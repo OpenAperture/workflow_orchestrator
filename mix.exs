@@ -30,7 +30,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Mixfile do
   defp deps do
     [
       {:poison, "~> 1.3.1"},
-      {:openaperture_messaging, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/OpenAperture/messaging.git", ref: "3211204ba8d949b76bc3373ee91260944cc0ff6b", override: true},
+      {:openaperture_messaging, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/OpenAperture/messaging.git", ref: "08a2cf72198b0aaa8715e4174b526f957ef3933e", override: true},
       {:openaperture_manager_api, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/OpenAperture/manager_api.git", ref: "f67a4570ec4b46cb2b2bb746924b322eec1e3178", override: true},
 
       {:timex, "~> 0.12.9"},
