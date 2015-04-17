@@ -5,7 +5,7 @@
 The WorkflowOrchestrator module provides a standardized mechanism to orchestrate Workflow events for builds and deploys and publish messages to the relevant consumers.  In order to successfully orchestrate messages, there are a few deployment-related assumptions:
 
 * The Notifications module is running in the same exchange as the orchestrator
-* The Builder module (wherever it's running) is has access to docker build clusters associated with it's exchange
+* The Builder module (wherever it's running) has access to docker build clusters associated with it's exchange
 
 ## Module Responsibilities
 
