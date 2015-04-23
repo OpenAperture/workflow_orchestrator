@@ -285,15 +285,15 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
       source_repo: workflow_info[:source_repo],
       source_repo_git_ref: workflow_info[:source_repo_git_ref],
       source_commit_hash: workflow_info[:source_commit_hash],
-      milestones: Poison.encode!(workflow_info[:milestones]),
+      milestones: workflow_info[:milestones],
       current_step: "#{workflow_info[:current_step]}",
       elapsed_step_time: TimexExtensions.get_elapased_timestamp(workflow_info[:step_time]),
       elapsed_workflow_time: TimexExtensions.get_elapased_timestamp(workflow_info[:workflow_start_time]),
       workflow_duration: workflow_info[:workflow_duration],
-      workflow_step_durations: Poison.encode!(workflow_info[:workflow_step_durations]),
+      workflow_step_durations: workflow_info[:workflow_step_durations],
       workflow_error: workflow_info[:workflow_error],
       workflow_completed: workflow_info[:workflow_completed],
-      event_log: Poison.encode!(workflow_info[:event_log]),
+      event_log: workflow_info[:event_log],
     }
 		
     case WorkflowAPI.update_workflow(ManagerApi.get_api, workflow_info[:workflow_id], workflow_payload) do

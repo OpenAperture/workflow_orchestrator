@@ -37,6 +37,8 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   alias OpenAperture.WorkflowOrchestrator.Deployer.Publisher, as: DeployerPublisher
   alias OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolver
 
+  alias OpenAperture.WorkflowOrchestratorApi.Request, as: OrchestratorRequest
+
   @doc """
   Method to start a WorkflowFSM
 
@@ -285,20 +287,18 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
       Workflow.workflow_failed(state_data[:workflow], "Unable to request build - no build clusters are available!")
       Dispatcher.acknowledge(state_data[:delivery_tag])
     else
-      payload = Workflow.get_info(state_data[:workflow])
-      payload = Map.put(payload, :docker_build_etcd_token, docker_build_etcd_cluster["etcd_token"])
-
-      #default entries for all communications to children
-      payload = Map.put(payload, :notifications_exchange_id, Configuration.get_current_exchange_id)
-      payload = Map.put(payload, :notifications_broker_id, Configuration.get_current_broker_id)
-      payload = Map.put(payload, :orchestration_exchange_id, Configuration.get_current_exchange_id)
-      payload = Map.put(payload, :orchestration_broker_id, Configuration.get_current_broker_id)
-      payload = Map.put(payload, :orchestration_queue_name, "workflow_orchestration")
+      request = OrchestratorRequest.from_payload(Workflow.get_info(state_data[:workflow]))
+      request = %{request | docker_build_etcd_token: docker_build_etcd_cluster["etcd_token"]}
+      request = %{request | notifications_exchange_id: Configuration.get_current_exchange_id}
+      request = %{request | notifications_broker_id: Configuration.get_current_broker_id}
+      request = %{request | workflow_orchestration_exchange_id: Configuration.get_current_exchange_id}
+      request = %{request | workflow_orchestration_broker_id: Configuration.get_current_broker_id}
+      request = %{request | orchestration_queue_name: "workflow_orchestration"}
 
       Logger.debug("#{state_data[:workflow_fsm_prefix]} Saving workflow...")
       Workflow.save(state_data[:workflow])
 
-      BuilderPublisher.build(state_data[:delivery_tag], messaging_exchange_id, payload)
+      BuilderPublisher.build(state_data[:delivery_tag], messaging_exchange_id, OrchestratorRequest.to_payload(request))
     end
 
     # after this action, we want to complete the current Workflow Orchestration.  The worker will
@@ -337,18 +337,17 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
       Dispatcher.acknowledge(state_data[:delivery_tag])
     else
       #default entries for all communications to children
-      workflow_info = Workflow.get_info(state_data[:workflow])
-      payload = workflow_info
-      payload = Map.put(payload, :notifications_exchange_id, Configuration.get_current_exchange_id)
-      payload = Map.put(payload, :notifications_broker_id, Configuration.get_current_broker_id)
-      payload = Map.put(payload, :orchestration_exchange_id, Configuration.get_current_exchange_id)
-      payload = Map.put(payload, :orchestration_broker_id, Configuration.get_current_broker_id)      
-      payload = Map.put(payload, :orchestration_queue_name, "workflow_orchestration")
+      request = OrchestratorRequest.from_payload(Workflow.get_info(state_data[:workflow]))
+      request = %{request | notifications_exchange_id: Configuration.get_current_exchange_id}
+      request = %{request | notifications_broker_id: Configuration.get_current_broker_id}
+      request = %{request | workflow_orchestration_exchange_id: Configuration.get_current_exchange_id}
+      request = %{request | workflow_orchestration_broker_id: Configuration.get_current_broker_id}
+      request = %{request | orchestration_queue_name: "workflow_orchestration"}
 
       Logger.debug("#{state_data[:workflow_fsm_prefix]} Saving workflow...")
       Workflow.save(state_data[:workflow])
 
-      DeployerPublisher.deploy(state_data[:delivery_tag], messaging_exchange_id, payload)       
+      DeployerPublisher.deploy(state_data[:delivery_tag], messaging_exchange_id, OrchestratorRequest.to_payload(request))       
     end
 
     # after this action, we want to complete the current Workflow Orchestration.  The worker will

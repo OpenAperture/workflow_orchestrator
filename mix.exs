@@ -14,7 +14,13 @@ defmodule OpenAperture.WorkflowOrchestrator.Mixfile do
   def application do
     [
       mod: { OpenAperture.WorkflowOrchestrator, [] },
-      applications: [:logger, :openaperture_messaging, :openaperture_manager_api]
+      applications: [
+        :logger, 
+        :openaperture_messaging, 
+        :openaperture_manager_api,
+        :openaperture_overseer_api,
+        :openaperture_workflow_orchestrator_api
+      ]
     ]
   end
 
@@ -30,13 +36,16 @@ defmodule OpenAperture.WorkflowOrchestrator.Mixfile do
   defp deps do
     [
       {:ex_doc, github: "elixir-lang/ex_doc"},
-      {:markdown, github: "devinus/markdown"},       
+      {:markdown, github: "devinus/markdown"},  #test only!     
+
       {:poison, "~> 1.3.1"},
-      {:openaperture_messaging, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/OpenAperture/messaging.git", ref: "6b013743053bd49c964cdf49766a8a201ef33f71", override: true},
-      {:openaperture_manager_api, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/OpenAperture/manager_api.git", ref: "f67a4570ec4b46cb2b2bb746924b322eec1e3178", override: true},
+      {:openaperture_messaging, git: "https://github.com/OpenAperture/messaging.git", ref: "e3247e4fbcc097a3156e3b95ad2115408693ca12", override: true},
+      {:openaperture_manager_api, git: "https://github.com/OpenAperture/manager_api.git",  ref: "ae629a4127acceac8a9791c85e5a0d3b67d1ad16", override: true},
+      {:openaperture_overseer_api, git: "https://github.com/OpenAperture/overseer_api.git", ref: "bbc5b14934f253884f91c174906bbc3570fddd2f", override: true},
+      {:openaperture_workflow_orchestrator_api, git: "https://github.com/OpenAperture/workflow_orchestrator_api.git", ref: "488832b216a1a139a6c58d788083cf5054b3dbe8", override: true},
+      {:timex_extensions, git: "https://github.com/OpenAperture/timex_extensions.git", ref: "ab9d8820625171afbb80ccba1aa48feeb43dd790", override: true},
 
       {:timex, "~> 0.12.9"},
-      {:timex_extensions, git: "https://#{System.get_env("GITHUB_OAUTH_TOKEN")}:x-oauth-basic@github.com/OpenAperture/timex_extensions.git", ref: "ab9d8820625171afbb80ccba1aa48feeb43dd790", override: true},
 
       #test dependencies
       {:exvcr, github: "parroty/exvcr", override: true},

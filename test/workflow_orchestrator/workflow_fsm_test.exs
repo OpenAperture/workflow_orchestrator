@@ -153,8 +153,8 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   		assert payload[:docker_build_etcd_token] == "123456789000"
   		assert payload[:notifications_exchange_id] == "1"
   		assert payload[:notifications_broker_id] == "1"
-  		assert payload[:orchestration_exchange_id] == "1"
-  		assert payload[:orchestration_broker_id] == "1"
+  		assert payload[:workflow_orchestration_exchange_id] == "1"
+  		assert payload[:workflow_orchestration_broker_id] == "1"
       assert payload[:orchestration_queue_name] == "workflow_orchestration"
   		:ok 
   	end)
@@ -189,8 +189,8 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   		assert payload[:docker_build_etcd_token] == "123456789000"
   		assert payload[:notifications_exchange_id] == "1"
   		assert payload[:notifications_broker_id] == "1"
-      assert payload[:orchestration_exchange_id] == "1"
-      assert payload[:orchestration_broker_id] == "1"
+      assert payload[:workflow_orchestration_exchange_id] == "1"
+      assert payload[:workflow_orchestration_broker_id] == "1"
       assert payload[:orchestration_queue_name] == "workflow_orchestration"
   		:ok 
   	end)
@@ -249,8 +249,8 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   		assert payload != nil
   		assert payload[:notifications_exchange_id] == "1"
   		assert payload[:notifications_broker_id] == "1"
-      assert payload[:orchestration_exchange_id] == "1"
-      assert payload[:orchestration_broker_id] == "1"
+      assert payload[:workflow_orchestration_exchange_id] == "1"
+      assert payload[:workflow_orchestration_broker_id] == "1"
       assert payload[:orchestration_queue_name] == "workflow_orchestration"
   		:ok 
   	end)
@@ -284,8 +284,8 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   		assert payload != nil
   		assert payload[:notifications_exchange_id] == "1"
   		assert payload[:notifications_broker_id] == "1"
-      assert payload[:orchestration_exchange_id] == "1"
-      assert payload[:orchestration_broker_id] == "1"
+      assert payload[:workflow_orchestration_exchange_id] == "1"
+      assert payload[:workflow_orchestration_broker_id] == "1"
       assert payload[:orchestration_queue_name] == "workflow_orchestration"
   		:ok 
   	end)
