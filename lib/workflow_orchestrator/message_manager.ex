@@ -8,6 +8,8 @@ require Logger
 
 defmodule OpenAperture.WorkflowOrchestrator.MessageManager do
 
+  alias OpenAperture.OverseerApi.Heartbeat
+
   @moduledoc """
   This module contains the logic for associating message references with their subscription handlers
   """  
@@ -34,13 +36,26 @@ defmodule OpenAperture.WorkflowOrchestrator.MessageManager do
   """
   @spec track(Map) :: term
   def track(%{subscription_handler: subscription_handler, delivery_tag: delivery_tag} = _async_info) do
-    message = %{
+    new_message = %{
       process: self(),
       subscription_handler: subscription_handler, 
       delivery_tag: delivery_tag,
       start_time: :calendar.universal_time
     }
-    Agent.update(__MODULE__, fn messages -> Map.put(messages, delivery_tag, message) end)
+
+    messages = Agent.get(__MODULE__, fn messages -> messages end)
+    messages = Map.put(messages, delivery_tag, new_message)
+
+    workload = Enum.reduce Map.keys(messages), [], fn(delivery_tag, workload) ->
+      workload ++ [%{
+        description: "Request:  #{delivery_tag}"
+      }]
+    end
+    Heartbeat.set_workload(workload)
+
+    Agent.update(__MODULE__, fn _ -> messages end)
+
+    new_message
   end
 
   @doc """
@@ -56,9 +71,18 @@ defmodule OpenAperture.WorkflowOrchestrator.MessageManager do
   """
   @spec remove(String.t()) :: Map
   def remove(delivery_tag) do
-    message = Agent.get(__MODULE__, fn messages -> messages[delivery_tag] end)
-    Agent.update(__MODULE__, fn messages -> Map.delete(messages, delivery_tag) end)
+    messages = Agent.get(__MODULE__, fn messages -> messages end)
+    deleted_message = messages[delivery_tag]
+    messages = Map.delete(messages, delivery_tag)
+    
+    workload = Enum.reduce Map.keys(messages), [], fn(delivery_tag, workload) ->
+      workload ++ [%{
+        description: "Request:  #{delivery_tag}"
+      }]
+    end
+    Heartbeat.set_workload(workload)
 
-    message
+    Agent.update(__MODULE__, fn _ -> messages end)
+    deleted_message
   end
 end
