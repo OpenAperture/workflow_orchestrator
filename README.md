@@ -1,7 +1,7 @@
 # OpenAperture.WorkflowOrchestrator
 
 [![Build Status](https://semaphoreci.com/api/v1/projects/f110a906-4c9a-4ba3-8106-e0b85ced97aa/394957/badge.svg)](https://semaphoreci.com/perceptive/workflow_orchestrator)
-
+ 
 The WorkflowOrchestrator module provides a standardized mechanism to orchestrate Workflow events for builds and deploys and publish messages to the relevant consumers.  In order to successfully orchestrate messages, there are a few deployment-related assumptions:
 
 * The Notifications module is running in the same exchange as the orchestrator
