@@ -75,8 +75,19 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
 
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
     subscribe(options, workflow_orchestration_queue, fn(payload, _meta, %{delivery_tag: delivery_tag} = async_info) -> 
-      MessageManager.track(async_info)
-      execute_orchestration(payload, delivery_tag) 
+      Logger.debug("Received message #{delivery_tag}")
+      try do
+        try do
+          MessageManager.track(async_info)
+          execute_orchestration(payload, delivery_tag) 
+        catch :exit, _ -> 
+          Logger.error("An exit event was caught while occurred processing request #{delivery_tag}")
+          acknowledge(delivery_tag)
+        end        
+      rescue e ->
+        Logger.error("An exception occurred while processing request #{delivery_tag}:  #{inspect e}")
+        acknowledge(delivery_tag)
+      end
     end)
   end
 
