@@ -225,6 +225,39 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
   	:meck.unload(WorkflowAPI)
   end  
 
+  test "resolve_next_milestone - nil workflow_steps" do
+    :meck.new(NotificationsPublisher, [:passthrough])
+    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
+
+    :meck.new(WorkflowAPI, [:passthrough])
+    :meck.expect(WorkflowAPI, :update_workflow, fn _, _, _ -> %Response{status: 204} end)   
+
+    id = "#{UUID.uuid1()}"
+    payload = %{
+      id: id,
+      workflow_id: id,
+      deployment_repo: "deployment_repo",
+      deployment_repo_git_ref: "deployment_repo_git_ref",
+      source_repo: "source_repo",
+      source_repo_git_ref: "source_repo_git_ref",
+      source_commit_hash: "source_commit_hash",
+      workflow_steps: nil,
+    }
+
+    workflow = Workflow.create_from_payload(payload)
+    assert Workflow.resolve_next_milestone(workflow) == :workflow_completed
+
+    workflow_info = Workflow.get_info(workflow)
+    assert workflow_info != nil
+    assert workflow_info[:workflow_completed] == true    
+    assert workflow_info[:workflow_error] == false
+    assert workflow_info[:workflow_duration] != nil
+    assert workflow_info[:current_step] == :workflow_completed
+  after
+    :meck.unload(NotificationsPublisher)
+    :meck.unload(WorkflowAPI)
+  end  
+
   test "resolve_next_milestone - build" do
   	:meck.new(NotificationsPublisher, [:passthrough])
   	:meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)

@@ -95,13 +95,13 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
       {:ok, workflow} ->
         result = WorkflowFSM.execute(workflow)
         if result == :completed do
-          Logger.debug("Successfully processed payload")
+          Logger.debug("Successfully processed request #{inspect payload[:id]}")
         else
-          Logger.error("Payload failed to process correctly:  #{inspect result}")
+          Logger.error("Payload failed to process request #{inspect payload[:id]}:  #{inspect result}")
         end
       {:error, reason} -> 
         #raise an exception to kick the to another orchestrator (hopefully that can process it)
-        raise "Unable to process Workflow Orchestration message:  #{inspect reason}"
+        raise "Unable to process request #{inspect payload[:id]}:  #{inspect reason}"
     end
   end
 
