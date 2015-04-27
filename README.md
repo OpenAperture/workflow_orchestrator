@@ -15,7 +15,7 @@ The WorkflowOrchestrator module is responsible for the following actions within 
 * If “workflow_completed” flag is true, stop executing Workflow milestones.
 * Save Workflow before executing request or completing Workflow
 * Provide worker modules with Orchestraion and Notification callbacks.
-
+ 
 ## Messaging / Communication
 
 The following message(s) may be sent to the WorkflowOrchestrator.  A Workflow is a OpenAperture construct that can be created/retrieved at /workflow.
