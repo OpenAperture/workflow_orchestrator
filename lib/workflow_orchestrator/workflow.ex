@@ -307,11 +307,11 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   """
   @spec resolve_next_step(Map) :: term
   def resolve_next_step(workflow_info) do
-    if workflow_info[:workflow_steps] == nil || length(workflow_info[:workflow_steps]) == 0 do
+    if workflow_info[:milestones] == nil || length(workflow_info[:milestones]) == 0 do
       nil
     else
     	current_step = workflow_info[:current_step]
-    	{_, next_step} = Enum.reduce workflow_info[:workflow_steps], {false, nil}, fn(available_step, {use_next_step, next_step})->
+    	{_, next_step} = Enum.reduce workflow_info[:milestones], {false, nil}, fn(available_step, {use_next_step, next_step})->
     		#we already found the next step
     		if (next_step != nil) do
     			{false, next_step}

@@ -135,7 +135,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
   	:meck.unload(WorkflowAPI)
   end
 
-  test "resolve_next_milestone - no workflow_steps" do
+  test "resolve_next_milestone - no milestones" do
   	:meck.new(NotificationsPublisher, [:passthrough])
   	:meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
 
@@ -151,7 +151,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
   		source_repo: "source_repo",
   		source_repo_git_ref: "source_repo_git_ref",
   		source_commit_hash: "source_commit_hash",
-  		workflow_steps: [],
+  		milestones: [],
   	}
 
     workflow = Workflow.create_from_payload(payload)
@@ -168,7 +168,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
   	:meck.unload(WorkflowAPI)
   end  
 
-  test "resolve_next_milestone - nil workflow_steps" do
+  test "resolve_next_milestone - nil milestones" do
     :meck.new(NotificationsPublisher, [:passthrough])
     :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
 
@@ -184,7 +184,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
       source_repo: "source_repo",
       source_repo_git_ref: "source_repo_git_ref",
       source_commit_hash: "source_commit_hash",
-      workflow_steps: nil,
+      milestones: nil,
     }
 
     workflow = Workflow.create_from_payload(payload)
@@ -217,7 +217,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
   		source_repo: "source_repo",
   		source_repo_git_ref: "source_repo_git_ref",
   		source_commit_hash: "source_commit_hash",
-  		workflow_steps: [:build],
+  		milestones: [:build],
   	}
 
     workflow = Workflow.create_from_payload(payload)
@@ -251,7 +251,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
   		source_repo: "source_repo",
   		source_repo_git_ref: "source_repo_git_ref",
   		source_commit_hash: "source_commit_hash",
-  		workflow_steps: [:build, :deploy],
+  		milestones: [:build, :deploy],
   		current_step: :build
   	}
 
@@ -465,7 +465,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
     assert Workflow.resolve_next_step(workflow_info) == nil
   end
 
-  test "resolve_next_step - no workflow_steps" do
+  test "resolve_next_step - no milestones" do
   	id = "#{UUID.uuid1()}"
   	payload = %{
   		id: id,
@@ -475,7 +475,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
   		source_repo: "source_repo",
   		source_repo_git_ref: "source_repo_git_ref",
   		source_commit_hash: "source_commit_hash",
-  		workflow_steps: [],
+  		milestones: [],
   	}
 
     workflow = Workflow.create_from_payload(payload)
@@ -493,7 +493,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
   		source_repo: "source_repo",
   		source_repo_git_ref: "source_repo_git_ref",
   		source_commit_hash: "source_commit_hash",
-  		workflow_steps: [:build],
+  		milestones: [:build],
   	}
 
     workflow = Workflow.create_from_payload(payload)
@@ -511,7 +511,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
   		source_repo: "source_repo",
   		source_repo_git_ref: "source_repo_git_ref",
   		source_commit_hash: "source_commit_hash",
-  		workflow_steps: [:build, :deploy],
+  		milestones: [:build, :deploy],
   		current_step: :build
   	}
 
