@@ -76,8 +76,9 @@ defmodule OpenAperture.WorkflowOrchestrator.DispatcherTests do
     :meck.expect(WorkflowFSM, :execute, fn _ -> {:ok, %{}} end)
 
     payload = %{
+      id: 123
     }
-    Dispatcher.execute_orchestration(payload, %{subscription_handler: %{}, delivery_tag: "123abc"})
+    Dispatcher.execute_orchestration(payload, "123abc")
   after
     :meck.unload(WorkflowFSM)
     :meck.unload(ConnectionPool)
@@ -96,8 +97,9 @@ defmodule OpenAperture.WorkflowOrchestrator.DispatcherTests do
     :meck.expect(WorkflowFSM, :execute, fn _ -> {:error, "bad news bears"} end)
 
     payload = %{
+      id: 123
     }
-    Dispatcher.execute_orchestration(payload, %{subscription_handler: %{}, delivery_tag: "123abc"})
+    Dispatcher.execute_orchestration(payload, "123abc")
   after
     :meck.unload(WorkflowFSM)
     :meck.unload(ConnectionPool)

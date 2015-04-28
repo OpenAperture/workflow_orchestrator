@@ -39,7 +39,6 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   @spec create_from_payload(Map) :: pid | {:error, String.t()}
   def create_from_payload(payload) do
     defaults = %{
-      workflow_id: payload[:id],
       workflow_start_time: Time.now(),
       workflow_completed: false,
       workflow_error: false,
@@ -66,7 +65,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   """
   @spec get_id(pid) :: String.t()
   def get_id(workflow) do
-  	get_info(workflow)[:workflow_id]
+  	get_info(workflow)[:id]
   end
 
   @doc """
@@ -216,7 +215,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   """
   @spec send_notification(Map, term, String.t()) :: Map
 	def send_notification(workflow_info, is_success, message) do
-		prefix = "[OpenAperture Workflow][#{workflow_info[:workflow_id]}]"
+		prefix = "[OpenAperture Workflow][#{workflow_info[:id]}]"
     Logger.debug("#{prefix} #{message}")
     workflow_info = add_event_to_log(workflow_info, message, prefix)
     NotificationsPublisher.hipchat_notification(is_success, prefix, message)
@@ -242,7 +241,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   @spec add_event_to_log(Map, String.t(), String.t()) :: Map
   def add_event_to_log(workflow_info, event, prefix \\ nil) do
     if (prefix == nil) do
-      prefix = "[OpenAperture Workflow][#{workflow_info[:workflow_id]}]"
+      prefix = "[OpenAperture Workflow][#{workflow_info[:id]}]"
     end
 
     event_log = workflow_info[:event_log]
@@ -269,7 +268,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 		workflow_info = get_info(workflow)
 
     workflow_payload = %{
-      id: workflow_info[:workflow_id],
+      id: workflow_info[:id],
       deployment_repo: workflow_info[:deployment_repo],
       deployment_repo_git_ref: workflow_info[:deployment_repo_git_ref],
       source_repo: workflow_info[:source_repo],
@@ -286,7 +285,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
       event_log: workflow_info[:event_log],
     }
 		
-    case WorkflowAPI.update_workflow(ManagerApi.get_api, workflow_info[:workflow_id], workflow_payload) do
+    case WorkflowAPI.update_workflow(ManagerApi.get_api, workflow_info[:id], workflow_payload) do
       %Response{status: 204} -> :ok
       %Response{status: status} -> 
         error_message = "Failed to save workflow; server returned #{status}"

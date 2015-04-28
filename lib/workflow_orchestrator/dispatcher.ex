@@ -76,18 +76,18 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
     subscribe(options, workflow_orchestration_queue, fn(payload, _meta, %{delivery_tag: delivery_tag} = async_info) -> 
       try do
-        Logger.debug("Starting to process request #{delivery_tag}")
+        Logger.debug("Starting to process request #{delivery_tag} (workflow #{payload[:id]})")
         MessageManager.track(async_info)
         execute_orchestration(payload, delivery_tag) 
       catch
         :exit, code   -> 
-          Logger.error("Message #{delivery_tag} Exited with code #{inspect code}.  Payload:  #{inspect payload}")
+          Logger.error("Message #{delivery_tag} (workflow #{payload[:id]}) Exited with code #{inspect code}.  Payload:  #{inspect payload}")
           acknowledge(delivery_tag)
         :throw, value -> 
-          Logger.error("Message #{delivery_tag} Throw called with #{inspect value}.  Payload:  #{inspect payload}")
+          Logger.error("Message #{delivery_tag} (workflow #{payload[:id]}) Throw called with #{inspect value}.  Payload:  #{inspect payload}")
           acknowledge(delivery_tag)
         what, value   -> 
-          Logger.error("Message #{delivery_tag} Caught #{inspect what} with #{inspect value}.  Payload:  #{inspect payload}")
+          Logger.error("Message #{delivery_tag} (workflow #{payload[:id]}) Caught #{inspect what} with #{inspect value}.  Payload:  #{inspect payload}")
           acknowledge(delivery_tag)
       end
     end)
@@ -108,13 +108,13 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
       {:ok, workflow} ->
         {result, _} = WorkflowFSM.execute(workflow)
         if result == :completed do
-          Logger.debug("Successfully processed request #{inspect payload[:id]}")
+          Logger.debug("Successfully processed request #{delivery_tag} (workflow #{payload[:id]})")
         else
-          Logger.error("Payload failed to process request #{inspect payload[:id]}:  #{inspect result}")
+          Logger.error("Payload failed to process request #{delivery_tag} (workflow #{payload[:id]}):  #{inspect result}")
         end
       {:error, reason} -> 
         #raise an exception to kick the to another orchestrator (hopefully that can process it)
-        raise "Unable to process request #{inspect payload[:id]}:  #{inspect reason}"
+        raise "Unable to process request #{delivery_tag} (workflow #{payload[:id]}):  #{inspect reason}"
     end
   end
 
