@@ -256,6 +256,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   @spec workflow_completed(term, term, Map) :: {:stop, :normal, {:completed, pid}, Map}
   def workflow_completed(_current_state, _from, state_data) do
     Logger.debug("#{state_data[:workflow_fsm_prefix]} Finishing Workflow Orchestration...")
+    Dispatcher.acknowledge(state_data[:delivery_tag])
     {:stop, :normal, {:completed, state_data[:workflow]}, state_data}
   end
 
@@ -285,7 +286,6 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
     {messaging_exchange_id, docker_build_etcd_cluster} = DockerHostResolver.next_available
     if docker_build_etcd_cluster == nil do
       Workflow.workflow_failed(state_data[:workflow], "Unable to request build - no build clusters are available!")
-      Dispatcher.acknowledge(state_data[:delivery_tag])
     else
       request = OrchestratorRequest.from_payload(Workflow.get_info(state_data[:workflow]))
       request = %{request | docker_build_etcd_token: docker_build_etcd_cluster["etcd_token"]}
@@ -334,7 +334,6 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
     messaging_exchange_id = EtcdClusterMessagingResolver.exchange_for_cluster(workflow_info[:etcd_token])
     if messaging_exchange_id == nil do
       Workflow.workflow_failed(state_data[:workflow], "Unable to request deploy to cluster #{workflow_info[:etcd_token]} - cluster is not associated with an exchange!")
-      Dispatcher.acknowledge(state_data[:delivery_tag])
     else
       #default entries for all communications to children
       request = OrchestratorRequest.from_payload(Workflow.get_info(state_data[:workflow]))
