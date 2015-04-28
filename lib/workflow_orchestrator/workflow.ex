@@ -334,7 +334,11 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
     			end
     		end
     	end
-      next_step
+      if next_step == nil || is_atom(next_step) do
+        next_step
+      else
+        String.to_atom(next_step)
+      end
     end
   end  
 
