@@ -113,7 +113,12 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   """
   @spec complete?(pid) :: term
   def complete?(workflow) do
-  	get_info(workflow)[:workflow_completed]
+  	completed = get_info(workflow)[:workflow_completed]
+    if completed != nil do
+      completed
+    else
+      false
+    end
   end
 
   @doc """
