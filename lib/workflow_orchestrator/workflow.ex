@@ -39,33 +39,18 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   @spec create_from_payload(Map) :: pid | {:error, String.t()}
   def create_from_payload(payload) do
     defaults = %{
+      workflow_id: payload[:id],
       workflow_start_time: Time.now(),
       workflow_completed: false,
       workflow_error: false,
       event_log: []
     }
-    raw_workflow_info = Map.merge(defaults, payload)
 
-    result = if raw_workflow_info[:workflow_id] == nil do
-	    case WorkflowAPI.create_workflow!(ManagerApi.get_api, raw_workflow_info) do
-	      nil -> {:error, "Failed to create a new Workflow with the ManagerApi!"}
-	      workflow_id -> 
-          raw_workflow_info = Map.put(raw_workflow_info, :workflow_id, workflow_id)
-          raw_workflow_info = Map.put(raw_workflow_info, :id, workflow_id)
-          {:ok, raw_workflow_info}
-	    end   
-	  else
-	  	{:ok, raw_workflow_info}
-	  end
-
-	  case result do
-	  	{:ok, workflow_info} ->
-		    case Agent.start_link(fn -> workflow_info end) do
-		    	{:ok, pid} -> pid
-		    	{:error, reason} -> {:error, "Failed to create Workflow Agent:  #{inspect reason}"}
-		    end	
-	  	{:error, reason} -> {:error, reason}
-  	end
+    workflow_info = Map.merge(defaults, payload)
+    case Agent.start_link(fn -> workflow_info end) do
+    	{:ok, pid} -> pid
+    	{:error, reason} -> {:error, "Failed to create Workflow Agent:  #{inspect reason}"}
+    end	
   end
 
   @doc """

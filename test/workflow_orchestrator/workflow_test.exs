@@ -10,63 +10,6 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
   # ============================
   # create_from_payload tests
 
-  test "create_from_payload - create from scratch" do
-  	:meck.new(WorkflowAPI, [:passthrough])
-  	:meck.expect(WorkflowAPI, :create_workflow!, fn _, _ -> 123 end)
-  	
-  	payload = %{
-  		deployment_repo: "deployment_repo",
-  		deployment_repo_git_ref: "deployment_repo_git_ref",
-  		source_repo: "source_repo",
-  		source_repo_git_ref: "source_repo_git_ref",
-  		source_commit_hash: "source_commit_hash",
-  		milestones: [:build, :deploy],
-
-  	}
-
-    workflow = Workflow.create_from_payload(payload)
-    assert workflow != nil
-
-    workflow_info = Workflow.get_info(workflow)
-    assert workflow_info != nil
-    assert workflow_info[:workflow_start_time] != nil
-    assert workflow_info[:workflow_completed] == false
-    assert workflow_info[:workflow_error] == false
-    assert workflow_info[:event_log] == []
-
-    assert workflow_info[:id] == 123
-    assert workflow_info[:workflow_id] == 123
-    assert workflow_info[:deployment_repo] == payload[:deployment_repo]
-    assert workflow_info[:deployment_repo_git_ref] == payload[:deployment_repo_git_ref]
-    assert workflow_info[:source_repo] == payload[:source_repo]
-    assert workflow_info[:source_repo_git_ref] == payload[:source_repo_git_ref]
-    assert workflow_info[:source_commit_hash] == payload[:source_commit_hash]
-    assert workflow_info[:milestones] == payload[:milestones]
-  after
-  	:meck.unload(WorkflowAPI)   
-  end
-
-  test "create_from_payload - create from scratch failed" do
-  	:meck.new(WorkflowAPI, [:passthrough])
-  	:meck.expect(WorkflowAPI, :create_workflow!, fn _, _ -> nil end)
-  	
-  	payload = %{
-  		deployment_repo: "deployment_repo",
-  		deployment_repo_git_ref: "deployment_repo_git_ref",
-  		source_repo: "source_repo",
-  		source_repo_git_ref: "source_repo_git_ref",
-  		source_commit_hash: "source_commit_hash",
-  		milestones: [:build, :deploy],
-
-  	}
-
-    {result, reason} = Workflow.create_from_payload(payload)
-    assert result == :error
-    assert reason == "Failed to create a new Workflow with the ManagerApi!"
-  after
-  	:meck.unload(WorkflowAPI)   
-  end
-
   test "create_from_payload - existing" do
   	id = "#{UUID.uuid1()}"
   	payload = %{
