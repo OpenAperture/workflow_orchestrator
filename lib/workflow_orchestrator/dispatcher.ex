@@ -75,19 +75,19 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
 
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
     subscribe(options, workflow_orchestration_queue, fn(payload, _meta, %{delivery_tag: delivery_tag} = async_info) -> 
-      Logger.debug("Received message #{delivery_tag}, payload (#{inspect payload})")
       try do
+        Logger.debug("Starting to process request #{delivery_tag}")
         MessageManager.track(async_info)
         execute_orchestration(payload, delivery_tag) 
       catch
         :exit, code   -> 
-          Logger.error("Message #{delivery_tag} Exited with code #{inspect code}")
+          Logger.error("Message #{delivery_tag} Exited with code #{inspect code}.  Payload:  #{inspect payload}")
           acknowledge(delivery_tag)
         :throw, value -> 
-          Logger.error("Message #{delivery_tag} Throw called with #{inspect value}")
+          Logger.error("Message #{delivery_tag} Throw called with #{inspect value}.  Payload:  #{inspect payload}")
           acknowledge(delivery_tag)
         what, value   -> 
-          Logger.error("Message #{delivery_tag} Caught #{inspect what} with #{inspect value}")
+          Logger.error("Message #{delivery_tag} Caught #{inspect what} with #{inspect value}.  Payload:  #{inspect payload}")
           acknowledge(delivery_tag)
       end
     end)
