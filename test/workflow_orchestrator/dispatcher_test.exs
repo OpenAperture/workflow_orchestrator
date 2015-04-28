@@ -73,7 +73,7 @@ defmodule OpenAperture.WorkflowOrchestrator.DispatcherTests do
 
     :meck.new(WorkflowFSM, [:passthrough])
     :meck.expect(WorkflowFSM, :start_link, fn _, _ -> {:ok, nil} end)    
-    :meck.expect(WorkflowFSM, :execute, fn _ -> :ok end)
+    :meck.expect(WorkflowFSM, :execute, fn _ -> {:ok, %{}} end)
 
     payload = %{
     }

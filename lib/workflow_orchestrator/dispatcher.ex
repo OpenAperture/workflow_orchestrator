@@ -106,7 +106,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
   def execute_orchestration(payload, delivery_tag) do
     case WorkflowFSM.start_link(payload, delivery_tag) do
       {:ok, workflow} ->
-        result = WorkflowFSM.execute(workflow)
+        {result, _} = WorkflowFSM.execute(workflow)
         if result == :completed do
           Logger.debug("Successfully processed request #{inspect payload[:id]}")
         else
