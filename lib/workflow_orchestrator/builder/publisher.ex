@@ -82,10 +82,8 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.Publisher do
 		case publish(connection_options, build_queue, payload) do
 			:ok -> 
         Logger.debug("Successfully published Builder message")
-        Dispatcher.acknowledge(delivery_tag)
 			{:error, reason} -> 
         Logger.error("Failed to publish Builder message:  #{inspect reason}")
-        Dispatcher.reject(delivery_tag)
 		end
     {:noreply, state}
   end
