@@ -121,6 +121,8 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
     workflow_info = get_info(workflow)
 
     current_step = workflow_info[:current_step]
+    Logger.debug("Resolving next milestone for Workflow #{workflow_info[:id]}, current step is #{inspect current_step}")
+
     if current_step == nil do
     	resolved_workflow_info = send_success_notification(workflow_info, "Starting workflow...")
     else
@@ -159,6 +161,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
     Agent.update(workflow, fn _ -> resolved_workflow_info end)
     save(workflow)
 
+    Logger.debug("Resolving next milestone for Workflow #{workflow_info[:id]}, next step is #{inspect next_workflow_step}")
     next_workflow_step
   end
 
