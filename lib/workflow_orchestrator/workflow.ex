@@ -314,20 +314,32 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
       nil
     else
     	current_step = workflow_info[:current_step]
+      current_step_atom = if current_step == nil || is_atom(current_step) do
+        current_step
+      else
+        String.to_atom(current_step)
+      end
+      
     	{_, next_step} = Enum.reduce workflow_info[:milestones], {false, nil}, fn(available_step, {use_next_step, next_step})->
+        available_step_atom = if available_step == nil || is_atom(available_step) do
+          available_step
+        else
+          String.to_atom(available_step)
+        end
+
     		#we already found the next step
     		if (next_step != nil) do
     			{false, next_step}
     		else
     			#we're just starting the workflow
-  				if (current_step == nil) do
-    				{false, available_step}
+  				if (current_step_atom == nil) do
+    				{false, available_step_atom}
     			else
     				if (use_next_step) do
-    					{false, available_step}
+    					{false, available_step_atom}
     				else
   	  				#the current item in the list is the current workflow step
-  	  				if (current_step == available_step) do
+  	  				if (current_step_atom == available_step_atom) do
   	  					{true, next_step}
   	  				else
   	  					#the current item in the list is NOT the current workflow step

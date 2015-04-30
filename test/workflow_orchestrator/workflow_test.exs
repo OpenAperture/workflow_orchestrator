@@ -520,6 +520,25 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
     assert Workflow.resolve_next_step(workflow_info) == :deploy
   end    
 
+  test "resolve_next_step - deploy as string" do
+    id = "#{UUID.uuid1()}"
+    payload = %{
+      id: id,
+      workflow_id: id,
+      deployment_repo: "deployment_repo",
+      deployment_repo_git_ref: "deployment_repo_git_ref",
+      source_repo: "source_repo",
+      source_repo_git_ref: "source_repo_git_ref",
+      source_commit_hash: "source_commit_hash",
+      milestones: ["build", "deploy"],
+      current_step: "build"
+    }
+
+    workflow = Workflow.create_from_payload(payload)
+    workflow_info = Workflow.get_info(workflow)
+    assert Workflow.resolve_next_step(workflow_info) == :deploy
+  end    
+
   # ============================
   # workflow_failed tests
 
