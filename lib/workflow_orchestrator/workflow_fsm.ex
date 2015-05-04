@@ -302,8 +302,6 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
       Logger.debug("#{state_data[:workflow_fsm_prefix]} Saving workflow...")
       Workflow.save(state_data[:workflow])
-
-      Logger.debug("build - workflow_start_time:  #{inspect Workflow.get_info(state_data[:workflow])[:workflow_start_time]}")
       BuilderPublisher.build(state_data[:delivery_tag], messaging_exchange_id, OrchestratorRequest.to_payload(request))
     end
 
