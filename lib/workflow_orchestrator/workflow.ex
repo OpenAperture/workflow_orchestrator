@@ -46,6 +46,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
     }
 
     workflow_info = Map.merge(defaults, payload)
+    Logger.debug("create_from_payload - workflow_start_time:  #{inspect workflow_info[:workflow_start_time]}")
     case Agent.start_link(fn -> workflow_info end) do
     	{:ok, pid} -> pid
     	{:error, reason} -> {:error, "Failed to create Workflow Agent:  #{inspect reason}"}
@@ -403,6 +404,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
     workflow_info = Map.merge(workflow_info, %{workflow_completed: true})
     workflow_info = Map.merge(workflow_info, %{workflow_error: true})
 
+    Logger.debug("workflow_failed - workflow_start_time:  #{inspect workflow_info[:workflow_start_time]}")
     timestamp = TimexExtensions.get_elapased_timestamp(workflow_info[:workflow_start_time])
     workflow_info = Map.merge(workflow_info, %{workflow_duration: timestamp})
     workflow_info = send_failure_notification(workflow_info, "Workflow has failed in #{timestamp}")
