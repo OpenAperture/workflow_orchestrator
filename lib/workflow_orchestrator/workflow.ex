@@ -271,7 +271,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 		workflow_info = get_info(workflow)
 
     workflow_error = workflow_info[:workflow_error]
-    if workflow_error == nil && workflow_completed != nil  do
+    if workflow_error == nil && workflow_info[:workflow_completed] != nil  do
       workflow_error = false
     end
 
