@@ -106,6 +106,27 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   end
 
   @doc """
+  Method to determine if a Workflow has completed in error
+
+  ## Options
+   
+  The `workflow` option defines the Workflow referenced
+
+  ## Return values
+
+  boolean
+  """
+  @spec failed?(pid) :: term
+  def failed?(workflow) do
+    failed = get_info(workflow)[:workflow_error]
+    if failed != nil do
+      failed
+    else
+      false
+    end
+  end
+
+  @doc """
   Method to resolve the next Workflow step
 
   ## Options

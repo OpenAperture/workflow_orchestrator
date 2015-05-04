@@ -107,6 +107,27 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
   end
 
   # ============================
+  # failed? tests
+
+  test "failed?" do
+    id = "#{UUID.uuid1()}"
+    payload = %{
+      id: id,
+      workflow_id: id,
+      deployment_repo: "deployment_repo",
+      deployment_repo_git_ref: "deployment_repo_git_ref",
+      source_repo: "source_repo",
+      source_repo_git_ref: "source_repo_git_ref",
+      source_commit_hash: "source_commit_hash",
+      milestones: [:build, :deploy],
+      workflow_error: true
+    }
+
+    workflow = Workflow.create_from_payload(payload)
+    assert Workflow.failed?(workflow) == true
+  end
+
+  # ============================
   # resolve_next_milestone tests
   
   test "resolve_next_milestone - no milestones" do
@@ -135,7 +156,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
   	:meck.unload(WorkflowAPI)
   end
 
-  test "resolve_next_milestone - no milestones" do
+  test "resolve_next_milestone - no milestones 2" do
   	:meck.new(NotificationsPublisher, [:passthrough])
   	:meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
 
@@ -465,7 +486,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
     assert Workflow.resolve_next_step(workflow_info) == nil
   end
 
-  test "resolve_next_step - no milestones" do
+  test "resolve_next_step - no milestones 2" do
   	id = "#{UUID.uuid1()}"
   	payload = %{
   		id: id,

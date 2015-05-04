@@ -53,6 +53,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.expect(Workflow, :get_id, fn _ -> "123abc" end)
   	:meck.expect(Workflow, :save, fn _ -> :ok end)
   	:meck.expect(Workflow, :complete?, fn _ -> true end)
+    :meck.expect(Workflow, :failed?, fn _ -> false end)
   	
   	payload = %{
   	}
@@ -72,6 +73,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.expect(Workflow, :save, fn _ -> :ok end)
   	:meck.expect(Workflow, :complete?, fn _ -> true end)
   	:meck.expect(Workflow, :resolve_next_milestone, fn _ -> :workflow_completed end)
+    :meck.expect(Workflow, :failed?, fn _ -> false end)
   	  	
   	payload = %{
   	}
@@ -104,6 +106,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.expect(Workflow, :get_id, fn _ -> "123abc" end)
   	:meck.expect(Workflow, :save, fn _ -> :ok end)
   	:meck.expect(Workflow, :complete?, fn _ -> true end)
+    :meck.expect(Workflow, :failed?, fn _ -> false end)
   	
   	payload = %{
   	}
@@ -122,6 +125,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   test "build - resolution failed" do
   	:meck.new(Workflow, [:passthrough])
   	:meck.expect(Workflow, :workflow_failed, fn _, _ -> :ok end)
+    :meck.expect(Workflow, :failed?, fn _ -> true end)
 
   	:meck.new(DockerHostResolver, [:passthrough])
   	:meck.expect(DockerHostResolver, :next_available, fn -> {nil, nil} end)  	
@@ -141,6 +145,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.new(Workflow, [:passthrough])
   	:meck.expect(Workflow, :save, fn _ -> :ok end)
   	:meck.expect(Workflow, :get_info, fn _ -> %{} end)
+    :meck.expect(Workflow, :failed?, fn _ -> false end)
 
   	state_data = %{workflow_fsm_prefix: "[]", workflow: %{}, delivery_tag: "#{UUID.uuid1()}"}
   	:meck.new(BuilderPublisher, [:passthrough])
@@ -177,6 +182,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.expect(Workflow, :complete?, fn _ -> false end)
   	:meck.expect(Workflow, :get_info, fn _ -> %{} end)
   	:meck.expect(Workflow, :resolve_next_milestone, fn _ -> :build end)
+    :meck.expect(Workflow, :failed?, fn _ -> false end)
 
   	orig_delivery_tag = "#{UUID.uuid1()}"
   	:meck.new(BuilderPublisher, [:passthrough])
@@ -238,6 +244,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.new(Workflow, [:passthrough])
   	:meck.expect(Workflow, :save, fn _ -> :ok end)
   	:meck.expect(Workflow, :get_info, fn _ -> %{} end)
+    :meck.expect(Workflow, :failed?, fn _ -> false end)
 
   	state_data = %{workflow_fsm_prefix: "[]", workflow: %{}, delivery_tag: "#{UUID.uuid1()}"}
   	:meck.new(DeployerPublisher, [:passthrough])
@@ -273,6 +280,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.expect(Workflow, :complete?, fn _ -> true end)
   	:meck.expect(Workflow, :get_info, fn _ -> %{} end)
   	:meck.expect(Workflow, :resolve_next_milestone, fn _ -> :deploy end)
+    :meck.expect(Workflow, :failed?, fn _ -> false end)
 
   	orig_delivery_tag = "#{UUID.uuid1()}"
   	:meck.new(DeployerPublisher, [:passthrough])
