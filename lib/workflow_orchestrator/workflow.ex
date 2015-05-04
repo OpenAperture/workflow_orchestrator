@@ -48,19 +48,19 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
     #the payload may override the defaults back to nil
     workflow_info = Map.merge(defaults, payload)
     if workflow_info[:workflow_start_time] == nil do
-      workflow_start_time = Map.put(workflow_info, :workflow_start_time, Time.now())
+      workflow_info = Map.put(workflow_info, :workflow_start_time, Time.now())
     end
     
     if workflow_info[:workflow_completed] == nil do
-      workflow_start_time = Map.put(workflow_info, :workflow_completed, false)
+      workflow_info = Map.put(workflow_info, :workflow_completed, false)
     end
 
     if workflow_info[:workflow_error] == nil do
-      workflow_start_time = Map.put(workflow_info, :workflow_error, false)
+      workflow_info = Map.put(workflow_info, :workflow_error, false)
     end
 
     if workflow_info[:event_log] == nil do
-      workflow_start_time = Map.put(workflow_info, :event_log, [])
+      workflow_info = Map.put(workflow_info, :event_log, [])
     end
 
     Logger.debug("create_from_payload - workflow_start_time:  #{inspect workflow_info[:workflow_start_time]}")
