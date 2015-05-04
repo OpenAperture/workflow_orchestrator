@@ -270,6 +270,11 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 	def save(workflow) do
 		workflow_info = get_info(workflow)
 
+    workflow_error = workflow_info[:workflow_error]
+    if workflow_error == nil && workflow_completed != nil  do
+      workflow_error = false
+    end
+
     workflow_payload = %{
       id: workflow_info[:id],
       deployment_repo: workflow_info[:deployment_repo],
@@ -283,7 +288,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
       elapsed_workflow_time: TimexExtensions.get_elapased_timestamp(workflow_info[:workflow_start_time]),
       workflow_duration: workflow_info[:workflow_duration],
       workflow_step_durations: workflow_info[:workflow_step_durations],
-      workflow_error: workflow_info[:workflow_error],
+      workflow_error: workflow_error,
       workflow_completed: workflow_info[:workflow_completed],
       event_log: workflow_info[:event_log],
     }
