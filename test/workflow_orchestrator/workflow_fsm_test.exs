@@ -146,6 +146,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.expect(Workflow, :save, fn _ -> :ok end)
   	:meck.expect(Workflow, :get_info, fn _ -> %{} end)
     :meck.expect(Workflow, :failed?, fn _ -> false end)
+    :meck.expect(Workflow, :add_success_notification, fn _,_ -> :ok end)
 
   	state_data = %{workflow_fsm_prefix: "[]", workflow: %{}, delivery_tag: "#{UUID.uuid1()}"}
   	:meck.new(BuilderPublisher, [:passthrough])
@@ -183,6 +184,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.expect(Workflow, :get_info, fn _ -> %{} end)
   	:meck.expect(Workflow, :resolve_next_milestone, fn _ -> :build end)
     :meck.expect(Workflow, :failed?, fn _ -> false end)
+    :meck.expect(Workflow, :add_success_notification, fn _,_ -> :ok end)
 
   	orig_delivery_tag = "#{UUID.uuid1()}"
   	:meck.new(BuilderPublisher, [:passthrough])
@@ -245,6 +247,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.expect(Workflow, :save, fn _ -> :ok end)
   	:meck.expect(Workflow, :get_info, fn _ -> %{} end)
     :meck.expect(Workflow, :failed?, fn _ -> false end)
+    :meck.expect(Workflow, :add_success_notification, fn _,_ -> :ok end)
 
   	state_data = %{workflow_fsm_prefix: "[]", workflow: %{}, delivery_tag: "#{UUID.uuid1()}"}
   	:meck.new(DeployerPublisher, [:passthrough])

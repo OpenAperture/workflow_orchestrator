@@ -204,6 +204,46 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   end
 
   @doc """
+  Method to append a "success" notification to the Workflow's log
+
+  ## Options
+   
+  The `workflow_info` option defines the Workflow info Map
+
+  The `message` option defines the message to publish
+
+  ## Return values
+
+  :ok
+  """
+  @spec add_success_notification(pid, String.t()) :: :ok
+  def add_success_notification(workflow, message) do
+    workflow_info = send_success_notification(get_info(workflow), message)
+    Agent.update(workflow, fn _ -> workflow_info end)
+    :ok
+  end
+
+  @doc """
+  Method to append a "failure" notification to the Workflow's log
+
+  ## Options
+   
+  The `workflow_info` option defines the Workflow info Map
+
+  The `message` option defines the message to publish
+
+  ## Return values
+
+  :ok
+  """
+  @spec add_failure_notification(pid, String.t()) :: :ok
+  def add_failure_notification(workflow, message) do
+    workflow_info = send_failure_notification(get_info(workflow), message)
+    Agent.update(workflow, fn _ -> workflow_info end)
+    :ok
+  end
+
+  @doc """
   Method to publish a "success" notification
 
   ## Options

@@ -292,6 +292,8 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
     if docker_build_etcd_cluster == nil do
       Workflow.workflow_failed(state_data[:workflow], "Unable to request build - no build clusters are available!")
     else
+      Workflow.add_success_notification(state_data[:workflow], "Dispatching a build request to exchange #{messaging_exchange_id}, docker build cluster #{docker_build_etcd_cluster["etcd_token"]}...")
+
       request = OrchestratorRequest.from_payload(Workflow.get_info(state_data[:workflow]))
       request = %{request | docker_build_etcd_token: docker_build_etcd_cluster["etcd_token"]}
       request = %{request | notifications_exchange_id: Configuration.get_current_exchange_id}
@@ -340,6 +342,8 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
     if messaging_exchange_id == nil do
       Workflow.workflow_failed(state_data[:workflow], "Unable to request deploy to cluster #{workflow_info[:etcd_token]} - cluster is not associated with an exchange!")
     else
+      Workflow.add_success_notification(state_data[:workflow], "Dispatching a deploy request to exchange #{messaging_exchange_id}, deployment cluster #{workflow_info[:etcd_token]}...")
+
       #default entries for all communications to children
       request = OrchestratorRequest.from_payload(Workflow.get_info(state_data[:workflow]))
       request = %{request | notifications_exchange_id: Configuration.get_current_exchange_id}

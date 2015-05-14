@@ -293,6 +293,66 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
   end  
 
   # ============================
+  # add_success_notification tests
+
+  test "add_success_notification" do
+    :meck.new(NotificationsPublisher, [:passthrough])
+    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
+
+    id = "#{UUID.uuid1()}"
+    payload = %{
+      id: id,
+      workflow_id: id,
+      deployment_repo: "deployment_repo",
+      deployment_repo_git_ref: "deployment_repo_git_ref",
+      source_repo: "source_repo",
+      source_repo_git_ref: "source_repo_git_ref",
+      source_commit_hash: "source_commit_hash",
+      milestones: [:build, :deploy],
+    }
+
+    workflow = Workflow.create_from_payload(payload)
+    assert Workflow.add_success_notification(workflow, "hello") == :ok
+    updated_info = Workflow.get_info(workflow)
+    assert updated_info[:event_log] != nil
+    event = List.first(updated_info[:event_log])
+    assert event != nil
+    assert String.contains?(event, "hello")
+  after
+    :meck.unload(NotificationsPublisher)
+  end
+
+  # ============================
+  # add_failure_notification tests
+
+  test "add_failure_notification" do
+    :meck.new(NotificationsPublisher, [:passthrough])
+    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
+
+    id = "#{UUID.uuid1()}"
+    payload = %{
+      id: id,
+      workflow_id: id,
+      deployment_repo: "deployment_repo",
+      deployment_repo_git_ref: "deployment_repo_git_ref",
+      source_repo: "source_repo",
+      source_repo_git_ref: "source_repo_git_ref",
+      source_commit_hash: "source_commit_hash",
+      milestones: [:build, :deploy],
+    }
+
+    workflow = Workflow.create_from_payload(payload)
+    assert Workflow.add_failure_notification(workflow, "hello") == :ok
+    updated_info = Workflow.get_info(workflow)
+    assert updated_info[:event_log] != nil
+    event = List.first(updated_info[:event_log])
+    assert event != nil
+    assert String.contains?(event, "hello")
+  after
+    :meck.unload(NotificationsPublisher)
+  end
+
+  # ============================
   # send_success_notification tests
 
   test "send_success_notification" do
@@ -352,7 +412,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
     assert String.contains?(event, "hello")
   after
     :meck.unload(NotificationsPublisher)
-  end  
+  end
 
   # ============================
   # send_notification tests
