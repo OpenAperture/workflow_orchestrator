@@ -289,6 +289,12 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   def build(_event, _from, state_data) do  
     Logger.debug("#{state_data[:workflow_fsm_prefix]} Requesting build...")   
     {messaging_exchange_id, docker_build_etcd_cluster} = DockerHostResolver.next_available
+
+    workflow_info = Workflow.get_info(state_data[:workflow])
+    if workflow_info[:build_messaging_exchange_id] != nil do
+      messaging_exchange_id = workflow_info[:build_messaging_exchange_id]
+      Workflow.add_success_notification(state_data[:workflow], "The Workflow request has overriden the default build messaging_exchange_id to #{messaging_exchange_id}")
+    end    
     if docker_build_etcd_cluster == nil do
       Workflow.workflow_failed(state_data[:workflow], "Unable to request build - no build clusters are available!")
     else
@@ -338,7 +344,13 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
     Logger.debug("#{state_data[:workflow_fsm_prefix]} Requesting deploy...")
 
     workflow_info = Workflow.get_info(state_data[:workflow])
-    messaging_exchange_id = EtcdClusterMessagingResolver.exchange_for_cluster(workflow_info[:etcd_token])
+
+    if workflow_info[:deploy_messaging_exchange_id] != nil do
+      messaging_exchange_id = workflow_info[:deploy_messaging_exchange_id]
+      Workflow.add_success_notification(state_data[:workflow], "The Workflow request has overriden the default deploy messaging_exchange_id to #{messaging_exchange_id}")
+    else
+      messaging_exchange_id = EtcdClusterMessagingResolver.exchange_for_cluster(workflow_info[:etcd_token])
+    end
     if messaging_exchange_id == nil do
       Workflow.workflow_failed(state_data[:workflow], "Unable to request deploy to cluster #{workflow_info[:etcd_token]} - cluster is not associated with an exchange!")
     else

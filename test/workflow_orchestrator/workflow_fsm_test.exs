@@ -126,6 +126,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.new(Workflow, [:passthrough])
   	:meck.expect(Workflow, :workflow_failed, fn _, _ -> :ok end)
     :meck.expect(Workflow, :failed?, fn _ -> true end)
+    :meck.expect(Workflow, :get_info, fn _ -> %{} end)
 
   	:meck.new(DockerHostResolver, [:passthrough])
   	:meck.expect(DockerHostResolver, :next_available, fn -> {nil, nil} end)  	
@@ -173,6 +174,40 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.unload(Workflow) 
   	:meck.unload(DockerHostResolver)	
   	:meck.unload(BuilderPublisher)
+  end
+
+  test "build - success, override messaging_exchange_id" do
+    :meck.new(Workflow, [:passthrough])
+    :meck.expect(Workflow, :save, fn _ -> :ok end)
+    :meck.expect(Workflow, :get_info, fn _ -> %{build_messaging_exchange_id: 789} end)
+    :meck.expect(Workflow, :failed?, fn _ -> false end)
+    :meck.expect(Workflow, :add_success_notification, fn _,_ -> :ok end)
+
+    state_data = %{workflow_fsm_prefix: "[]", workflow: %{}, delivery_tag: "#{UUID.uuid1()}"}
+    :meck.new(BuilderPublisher, [:passthrough])
+    :meck.expect(BuilderPublisher, :build, fn delivery_tag, messaging_exchange_id, payload -> 
+      assert delivery_tag == state_data[:delivery_tag]
+
+      assert messaging_exchange_id == 789
+
+      assert payload != nil
+      assert payload[:docker_build_etcd_token] == "123456789000"
+      assert payload[:notifications_exchange_id] == "1"
+      assert payload[:notifications_broker_id] == "1"
+      assert payload[:workflow_orchestration_exchange_id] == "1"
+      assert payload[:workflow_orchestration_broker_id] == "1"
+      assert payload[:orchestration_queue_name] == "workflow_orchestration"
+      :ok 
+    end)
+
+    :meck.new(DockerHostResolver, [:passthrough])
+    :meck.expect(DockerHostResolver, :next_available, fn -> {123, %{"etcd_token" => "123456789000"}} end)
+    
+    assert WorkflowFSM.build(:workflow_completed, nil, state_data) == {:reply, :in_progress, :workflow_completed, state_data}
+  after
+    :meck.unload(Workflow) 
+    :meck.unload(DockerHostResolver)  
+    :meck.unload(BuilderPublisher)
   end
 
   test "build - success through FSM" do
@@ -273,6 +308,39 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.unload(Workflow) 
   	:meck.unload(EtcdClusterMessagingResolver)	
   	:meck.unload(DeployerPublisher)
+  end
+
+  test "deploy - success, override messaging_exchange_id" do
+    :meck.new(Workflow, [:passthrough])
+    :meck.expect(Workflow, :save, fn _ -> :ok end)
+    :meck.expect(Workflow, :get_info, fn _ -> %{deploy_messaging_exchange_id: 789} end)
+    :meck.expect(Workflow, :failed?, fn _ -> false end)
+    :meck.expect(Workflow, :add_success_notification, fn _,_ -> :ok end)
+
+    state_data = %{workflow_fsm_prefix: "[]", workflow: %{}, delivery_tag: "#{UUID.uuid1()}"}
+    :meck.new(DeployerPublisher, [:passthrough])
+    :meck.expect(DeployerPublisher, :deploy, fn delivery_tag, messaging_exchange_id, payload -> 
+      assert delivery_tag == state_data[:delivery_tag]
+
+      assert messaging_exchange_id == 789
+
+      assert payload != nil
+      assert payload[:notifications_exchange_id] == "1"
+      assert payload[:notifications_broker_id] == "1"
+      assert payload[:workflow_orchestration_exchange_id] == "1"
+      assert payload[:workflow_orchestration_broker_id] == "1"
+      assert payload[:orchestration_queue_name] == "workflow_orchestration"
+      :ok 
+    end)
+
+    :meck.new(EtcdClusterMessagingResolver, [:passthrough])
+    :meck.expect(EtcdClusterMessagingResolver, :exchange_for_cluster, fn _ -> 123 end)
+    
+    assert WorkflowFSM.deploy(:workflow_completed, nil, state_data) == {:reply, :in_progress, :workflow_completed, state_data}
+  after
+    :meck.unload(Workflow) 
+    :meck.unload(EtcdClusterMessagingResolver)  
+    :meck.unload(DeployerPublisher)
   end
 
   test "deploy - success through FSM" do
