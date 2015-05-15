@@ -71,7 +71,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
   @spec register_queues() :: :ok | {:error, String.t()}
   def register_queues do
     Logger.debug("Registering WorkflowOrchestrator queues...")
-    workflow_orchestration_queue = QueueBuilder.build(ManagerApi.get_api, "workflow_orchestration", Configuration.get_current_exchange_id)
+    workflow_orchestration_queue = QueueBuilder.build(ManagerApi.get_api, Configuration.get_current_queue_name, Configuration.get_current_exchange_id)
 
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
     subscribe(options, workflow_orchestration_queue, fn(payload, _meta, %{delivery_tag: delivery_tag} = async_info) -> 

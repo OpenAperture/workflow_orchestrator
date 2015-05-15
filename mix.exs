@@ -39,7 +39,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Mixfile do
       {:markdown, github: "devinus/markdown", only: [:test]},     
 
       {:poison, "~> 1.3.1"},
-      {:openaperture_messaging, git: "https://github.com/OpenAperture/messaging.git", ref: "0af47ad04667342251bd829e01379b6d7703433f", override: true},
+      {:openaperture_messaging, git: "https://github.com/OpenAperture/messaging.git", ref: "e791d59c5bfaec9daa5cf7397401795ccd064a2a", override: true},
       {:openaperture_manager_api, git: "https://github.com/OpenAperture/manager_api.git", ref: "5d442cfbdd45e71c1101334e185d02baec3ef945", override: true},
       {:openaperture_overseer_api, git: "https://github.com/OpenAperture/overseer_api.git", ref: "4d65d2295f2730bc74ec695c32fa0d2478158182", override: true},
 

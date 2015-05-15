@@ -16,7 +16,6 @@ defmodule OpenAperture.WorkflowOrchestrator.Configuration do
   """ 
   @spec get_current_exchange_id() :: String.t()
   def get_current_exchange_id do
-    System.get_env()
     get_config("EXCHANGE_ID", :openaperture_workflow_orchestrator, :exchange_id)
   end
 
@@ -31,8 +30,21 @@ defmodule OpenAperture.WorkflowOrchestrator.Configuration do
   """ 
   @spec get_current_broker_id() :: String.t()
   def get_current_broker_id do
-    System.get_env()
     get_config("BROKER_ID", :openaperture_workflow_orchestrator, :broker_id)
+  end
+
+  @doc """
+  Method to retrieve the currently assigned queue name (for "workflow_orchestration")
+   
+  ## Options
+   
+  ## Return values
+
+  The exchange identifier
+  """ 
+  @spec get_current_queue_name() :: String.t()
+  def get_current_queue_name do
+    get_config("QUEUE_NAME", :openaperture_overseer, :queue_name)
   end
 
   @doc false
