@@ -44,13 +44,13 @@ defmodule OpenAperture.WorkflowOrchestrator.Supervisor do
 
     children = [
       # Define workers and child supervisors to be supervised
+      worker(OpenAperture.WorkflowOrchestrator.MessageManager, []),
       worker(OpenAperture.WorkflowOrchestrator.Dispatcher, []),
       worker(OpenAperture.WorkflowOrchestrator.Notifications.Publisher, []),
       worker(OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver, []),
       worker(OpenAperture.WorkflowOrchestrator.Builder.Publisher, []),
       worker(OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolver, []),
       worker(OpenAperture.WorkflowOrchestrator.Deployer.Publisher, []),
-      worker(OpenAperture.WorkflowOrchestrator.MessageManager, [])
     ]
 
     opts = [strategy: :one_for_one, name: __MODULE__]
