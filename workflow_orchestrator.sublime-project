@@ -11,6 +11,10 @@
             "elixirc": {
                 "pa": [
                   "${project}/_build/dev/lib/openaperture_workflow_orchestrator/ebin",
+                  "${project}/_build/dev/lib/openaperture_messaging/ebin",
+                  "${project}/_build/dev/lib/amqp/ebin",
+                  "${project}/_build/dev/lib/timex_extensions/ebin",
+                  "${project}/_build/dev/lib/timex/ebin"
                 ]
             }
         }

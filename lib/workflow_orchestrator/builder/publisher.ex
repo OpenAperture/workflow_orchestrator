@@ -16,7 +16,6 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.Publisher do
 	alias OpenAperture.Messaging.AMQP.QueueBuilder
 
 	alias OpenAperture.WorkflowOrchestrator.Configuration
-  alias OpenAperture.WorkflowOrchestrator.Dispatcher
 
   alias OpenAperture.ManagerApi
 
@@ -69,7 +68,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.Publisher do
   messages to arrive out of order.
   """
   @spec handle_cast({:build, String.t(), String.t(), Map}, Map) :: {:noreply, Map}
-  def handle_cast({:build, delivery_tag, messaging_exchange_id, payload}, state) do
+  def handle_cast({:build, _delivery_tag, messaging_exchange_id, payload}, state) do
     build_queue = QueueBuilder.build(ManagerApi.get_api, "builder", messaging_exchange_id)
 
     connection_options = ConnectionOptionsResolver.resolve(

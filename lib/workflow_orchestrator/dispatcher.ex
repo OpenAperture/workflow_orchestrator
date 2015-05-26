@@ -8,7 +8,6 @@ require Logger
 defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
 	use GenServer
 
-	alias OpenAperture.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
   alias OpenAperture.Messaging.AMQP.QueueBuilder
   alias OpenAperture.Messaging.AMQP.SubscriptionHandler
 

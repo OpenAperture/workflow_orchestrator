@@ -14,7 +14,6 @@ defmodule OpenAperture.WorkflowOrchestrator.Notifications.Publisher do
   This module contains the logic to publish messages to the Notifications system module
   """  
 
-	alias OpenAperture.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
 	alias OpenAperture.Messaging.AMQP.QueueBuilder
 
 	alias OpenAperture.WorkflowOrchestrator.Configuration
