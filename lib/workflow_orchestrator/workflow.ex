@@ -296,7 +296,8 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   """
   @spec send_notification(Map, term, String.t()) :: Map
 	def send_notification(workflow_info, is_success, message) do
-		prefix = "[OpenAperture Workflow][#{workflow_info[:id]}]"
+    deployment_repo = workflow_info[:deployment_repo] || "Unknown"
+		prefix = "[OA][#{deployment_repo}][#{workflow_info[:id]}]"
     Logger.debug("#{prefix} #{message}")
     workflow_info = add_event_to_log(workflow_info, message, prefix)
     NotificationsPublisher.hipchat_notification(is_success, prefix, message)
