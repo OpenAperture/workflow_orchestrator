@@ -47,7 +47,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Mixfile do
       {:timex_extensions, git: "https://github.com/OpenAperture/timex_extensions.git", ref: "ab9d8820625171afbb80ccba1aa48feeb43dd790", override: true},
 
       {:timex, "~> 0.12.9"},
-      {:fleet_api, "~> 0.0.5"},
+      {:fleet_api, "~> 0.0.6"},
 
       #test dependencies
       {:exvcr, github: "parroty/exvcr", override: true},
