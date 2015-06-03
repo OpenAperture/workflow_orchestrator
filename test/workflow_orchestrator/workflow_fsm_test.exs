@@ -277,10 +277,44 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.unload(Dispatcher)
   end
 
+  test "deploy - failed - no etcd_token" do
+    :meck.new(Workflow, [:passthrough])
+    :meck.expect(Workflow, :save, fn _ -> :ok end)
+    :meck.expect(Workflow, :get_info, fn _ -> %{} end)
+    :meck.expect(Workflow, :workflow_failed, fn _,_ -> :ok end)
+    :meck.expect(Workflow, :failed?, fn _ -> false end)
+    :meck.expect(Workflow, :add_success_notification, fn _,_ -> :ok end)
+
+    state_data = %{workflow_fsm_prefix: "[]", workflow: %{}, delivery_tag: "#{UUID.uuid1()}"}
+    :meck.new(DeployerPublisher, [:passthrough])
+    :meck.expect(DeployerPublisher, :deploy, fn delivery_tag, messaging_exchange_id, payload -> 
+      assert delivery_tag == state_data[:delivery_tag]
+
+      assert messaging_exchange_id == 123
+
+      assert payload != nil
+      assert payload[:notifications_exchange_id] == "1"
+      assert payload[:notifications_broker_id] == "1"
+      assert payload[:workflow_orchestration_exchange_id] == "1"
+      assert payload[:workflow_orchestration_broker_id] == "1"
+      assert payload[:orchestration_queue_name] == "workflow_orchestration"
+      :ok 
+    end)
+
+    :meck.new(EtcdClusterMessagingResolver, [:passthrough])
+    :meck.expect(EtcdClusterMessagingResolver, :exchange_for_cluster, fn _ -> 123 end)
+    
+    assert WorkflowFSM.deploy(:workflow_completed, nil, state_data) == {:reply, :in_progress, :workflow_completed, state_data}
+  after
+    :meck.unload(Workflow) 
+    :meck.unload(EtcdClusterMessagingResolver)  
+    :meck.unload(DeployerPublisher)
+  end
+
   test "deploy - success" do
   	:meck.new(Workflow, [:passthrough])
   	:meck.expect(Workflow, :save, fn _ -> :ok end)
-  	:meck.expect(Workflow, :get_info, fn _ -> %{} end)
+  	:meck.expect(Workflow, :get_info, fn _ -> %{etcd_token: "123abc"} end)
     :meck.expect(Workflow, :failed?, fn _ -> false end)
     :meck.expect(Workflow, :add_success_notification, fn _,_ -> :ok end)
 
@@ -313,7 +347,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   test "deploy - success, override messaging_exchange_id" do
     :meck.new(Workflow, [:passthrough])
     :meck.expect(Workflow, :save, fn _ -> :ok end)
-    :meck.expect(Workflow, :get_info, fn _ -> %{deploy_messaging_exchange_id: 789} end)
+    :meck.expect(Workflow, :get_info, fn _ -> %{deploy_messaging_exchange_id: 789, etcd_token: "123abc"} end)
     :meck.expect(Workflow, :failed?, fn _ -> false end)
     :meck.expect(Workflow, :add_success_notification, fn _,_ -> :ok end)
 

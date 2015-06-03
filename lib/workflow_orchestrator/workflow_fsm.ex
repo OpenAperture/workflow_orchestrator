@@ -235,7 +235,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
         else
           Logger.debug("#{state_data[:workflow_fsm_prefix]} Workflow is complete")
         end
-        
+
         {:reply, :in_progress, :workflow_completed, state_data}
       false -> 
         Logger.debug("#{state_data[:workflow_fsm_prefix]} Workflow has not finished, resolving next milestone...")
@@ -346,30 +346,34 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
     Logger.debug("#{state_data[:workflow_fsm_prefix]} Requesting deploy...")
 
     workflow_info = Workflow.get_info(state_data[:workflow])
-
-    if workflow_info[:deploy_messaging_exchange_id] != nil do
-      messaging_exchange_id = workflow_info[:deploy_messaging_exchange_id]
-      Workflow.add_success_notification(state_data[:workflow], "The Workflow request has overriden the default deploy messaging_exchange_id to #{messaging_exchange_id}")
+    if workflow_info[:etcd_token] == nil || String.length(workflow_info[:etcd_token]) == 0 do
+      Workflow.workflow_failed(state_data[:workflow], "Unable to execute deployment - an invalid deployment cluster was provided!")
     else
-      messaging_exchange_id = EtcdClusterMessagingResolver.exchange_for_cluster(workflow_info[:etcd_token])
-    end
-    if messaging_exchange_id == nil do
-      Workflow.workflow_failed(state_data[:workflow], "Unable to request deploy to cluster #{workflow_info[:etcd_token]} - cluster is not associated with an exchange!")
-    else
-      Workflow.add_success_notification(state_data[:workflow], "Dispatching a deploy request to exchange #{messaging_exchange_id}, deployment cluster #{workflow_info[:etcd_token]}...")
+      if workflow_info[:deploy_messaging_exchange_id] != nil do
+        messaging_exchange_id = workflow_info[:deploy_messaging_exchange_id]
+        Workflow.add_success_notification(state_data[:workflow], "The Workflow request has overriden the default deploy messaging_exchange_id to #{messaging_exchange_id}")
+      else
+        messaging_exchange_id = EtcdClusterMessagingResolver.exchange_for_cluster(workflow_info[:etcd_token])
+      end
 
-      #default entries for all communications to children
-      request = OrchestratorRequest.from_payload(Workflow.get_info(state_data[:workflow]))
-      request = %{request | notifications_exchange_id: Configuration.get_current_exchange_id}
-      request = %{request | notifications_broker_id: Configuration.get_current_broker_id}
-      request = %{request | workflow_orchestration_exchange_id: Configuration.get_current_exchange_id}
-      request = %{request | workflow_orchestration_broker_id: Configuration.get_current_broker_id}
-      request = %{request | orchestration_queue_name: "workflow_orchestration"}
+      if messaging_exchange_id == nil do
+        Workflow.workflow_failed(state_data[:workflow], "Unable to request deploy to cluster #{workflow_info[:etcd_token]} - cluster is not associated with an exchange!")
+      else
+        Workflow.add_success_notification(state_data[:workflow], "Dispatching a deploy request to exchange #{messaging_exchange_id}, deployment cluster #{workflow_info[:etcd_token]}...")
 
-      Logger.debug("#{state_data[:workflow_fsm_prefix]} Saving workflow...")
-      Workflow.save(state_data[:workflow])
+        #default entries for all communications to children
+        request = OrchestratorRequest.from_payload(Workflow.get_info(state_data[:workflow]))
+        request = %{request | notifications_exchange_id: Configuration.get_current_exchange_id}
+        request = %{request | notifications_broker_id: Configuration.get_current_broker_id}
+        request = %{request | workflow_orchestration_exchange_id: Configuration.get_current_exchange_id}
+        request = %{request | workflow_orchestration_broker_id: Configuration.get_current_broker_id}
+        request = %{request | orchestration_queue_name: "workflow_orchestration"}
 
-      DeployerPublisher.deploy(state_data[:delivery_tag], messaging_exchange_id, OrchestratorRequest.to_payload(request))       
+        Logger.debug("#{state_data[:workflow_fsm_prefix]} Saving workflow...")
+        Workflow.save(state_data[:workflow])
+
+        DeployerPublisher.deploy(state_data[:delivery_tag], messaging_exchange_id, OrchestratorRequest.to_payload(request))       
+      end
     end
 
     # after this action, we want to complete the current Workflow Orchestration.  The worker will
