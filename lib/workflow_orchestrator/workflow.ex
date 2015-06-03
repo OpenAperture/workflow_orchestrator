@@ -347,38 +347,51 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   """
   @spec save(pid) :: :ok | {:error, String.t()}
 	def save(workflow) do
-		workflow_info = get_info(workflow)
+    try do    
+  		workflow_info = get_info(workflow)
 
-    workflow_error = workflow_info[:workflow_error]
-    if workflow_error == nil && workflow_info[:workflow_completed] != nil  do
-      workflow_error = false
-    end
+      workflow_error = workflow_info[:workflow_error]
+      if workflow_error == nil && workflow_info[:workflow_completed] != nil  do
+        workflow_error = false
+      end
 
-    workflow_payload = %{
-      id: workflow_info[:id],
-      deployment_repo: workflow_info[:deployment_repo],
-      deployment_repo_git_ref: workflow_info[:deployment_repo_git_ref],
-      source_repo: workflow_info[:source_repo],
-      source_repo_git_ref: workflow_info[:source_repo_git_ref],
-      source_commit_hash: workflow_info[:source_commit_hash],
-      milestones: workflow_info[:milestones],
-      current_step: "#{workflow_info[:current_step]}",
-      elapsed_step_time: TimexExtensions.get_elapased_timestamp(workflow_info[:step_time]),
-      elapsed_workflow_time: TimexExtensions.get_elapased_timestamp(workflow_info[:workflow_start_time]),
-      workflow_duration: workflow_info[:workflow_duration],
-      workflow_step_durations: workflow_info[:workflow_step_durations],
-      workflow_error: workflow_error,
-      workflow_completed: workflow_info[:workflow_completed],
-      event_log: workflow_info[:event_log],
-    }
+      workflow_payload = %{
+        id: workflow_info[:id],
+        deployment_repo: workflow_info[:deployment_repo],
+        deployment_repo_git_ref: workflow_info[:deployment_repo_git_ref],
+        source_repo: workflow_info[:source_repo],
+        source_repo_git_ref: workflow_info[:source_repo_git_ref],
+        source_commit_hash: workflow_info[:source_commit_hash],
+        milestones: workflow_info[:milestones],
+        current_step: "#{workflow_info[:current_step]}",
+        elapsed_step_time: TimexExtensions.get_elapased_timestamp(workflow_info[:step_time]),
+        elapsed_workflow_time: TimexExtensions.get_elapased_timestamp(workflow_info[:workflow_start_time]),
+        workflow_duration: workflow_info[:workflow_duration],
+        workflow_step_durations: workflow_info[:workflow_step_durations],
+        workflow_error: workflow_error,
+        workflow_completed: workflow_info[:workflow_completed],
+        event_log: workflow_info[:event_log],
+      }
 		
-    case WorkflowAPI.update_workflow(ManagerApi.get_api, workflow_info[:id], workflow_payload) do
-      %Response{status: 204} -> :ok
-      %Response{status: status} -> 
-        error_message = "Failed to save workflow; server returned #{status}"
-        Logger.error(error_message)
+      case WorkflowAPI.update_workflow(ManagerApi.get_api, workflow_info[:id], workflow_payload) do
+        %Response{status: 204} -> :ok
+        %Response{status: status} -> 
+          error_message = "Failed to save workflow; server returned #{status}"
+          Logger.error(error_message)
+          {:error, error_message}
+  		end
+    catch
+      :exit, code   -> 
+        error_message = "Failed to save workflow; Exited with code #{inspect code}"
+        Logger.error(error_message)        
         {:error, error_message}
-		end
+      :throw, value -> 
+        error_message = "Failed to save workflow; Throw called with #{inspect value}"
+        {:error, error_message}
+      what, value   -> 
+        error_message = "Failed to save workflow; Caught #{inspect what} with #{inspect value}"
+        {:error, error_message}
+    end      
   end	
 
   @doc """
