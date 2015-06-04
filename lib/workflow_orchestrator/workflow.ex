@@ -194,6 +194,9 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
       resolved_workflow_info = Map.merge(resolved_workflow_info, %{step_time: Time.now()})
       resolved_workflow_info = send_success_notification(resolved_workflow_info, "Starting Workflow Milestone:  #{inspect next_workflow_step}")
     end
+    if (resolved_workflow_info[:workflow_error]) do
+      next_workflow_step = :workflow_completed
+    end
     resolved_workflow_info = Map.put(resolved_workflow_info, :current_step, next_workflow_step)
 
     Agent.update(workflow, fn _ -> resolved_workflow_info end)
