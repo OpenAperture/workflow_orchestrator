@@ -11,6 +11,7 @@
             "elixirc": {
                 "pa": [
                   "${project}/_build/dev/lib/openaperture_workflow_orchestrator/ebin",
+                  "${project}/_build/dev/lib/openaperture_manager_api/ebin",
                   "${project}/_build/dev/lib/openaperture_messaging/ebin",
                   "${project}/_build/dev/lib/amqp/ebin",
                   "${project}/_build/dev/lib/timex_extensions/ebin",
