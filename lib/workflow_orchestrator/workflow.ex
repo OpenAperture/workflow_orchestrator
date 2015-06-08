@@ -301,7 +301,6 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   """
   @spec send_notification(Map, term, String.t()) :: Map
 	def send_notification(workflow_info, is_success, message) do
-    deployment_repo = workflow_info[:deployment_repo] || "Unknown"
 		prefix = build_notification_prefix(workflow_info)
     Logger.debug("#{prefix} #{message}")
     workflow_info = add_event_to_log(workflow_info, message, prefix)
