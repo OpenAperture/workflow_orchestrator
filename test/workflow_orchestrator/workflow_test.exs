@@ -684,4 +684,138 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
   after
   	:meck.unload(WorkflowAPI)
   end  
+
+  #===============================================
+  # send_workflow_completed_email tests
+
+  test "send_workflow_completed_email - no email notifications" do
+    :meck.new(NotificationsPublisher, [:passthrough])
+    :meck.expect(NotificationsPublisher, :email_notification, fn _,_,_ -> :ok end)   
+
+    id = "#{UUID.uuid1()}"
+    payload = %{
+      id: id,
+      workflow_id: id,
+      deployment_repo: "deployment_repo",
+      deployment_repo_git_ref: "deployment_repo_git_ref",
+      source_repo: "source_repo",
+      source_repo_git_ref: "source_repo_git_ref",
+      source_commit_hash: "source_commit_hash",
+      milestones: [:build, :deploy],
+      current_step: :deploy,
+      workflow_completed: true,
+      workflow_error: true
+    }
+
+    workflow = Workflow.create_from_payload(payload)
+    assert Workflow.send_workflow_completed_email(workflow) == :ok
+  after
+    :meck.unload(NotificationsPublisher)
+  end
+
+  test "send_workflow_completed_email - success" do
+    :meck.new(NotificationsPublisher, [:passthrough])
+    :meck.expect(NotificationsPublisher, :email_notification, fn _,_,_ -> :ok end)   
+
+    id = "#{UUID.uuid1()}"
+    payload = %{
+      id: id,
+      workflow_id: id,
+      deployment_repo: "deployment_repo",
+      deployment_repo_git_ref: "deployment_repo_git_ref",
+      source_repo: "source_repo",
+      source_repo_git_ref: "source_repo_git_ref",
+      source_commit_hash: "source_commit_hash",
+      milestones: [:build, :deploy],
+      current_step: :deploy,
+      workflow_completed: true,
+      workflow_error: true,
+      notifications_config: %{
+        email: %{
+          events: %{
+            on_workflow_completed: ["testing@oa.host.co"]
+          }
+        }
+      }
+    }
+
+    workflow = Workflow.create_from_payload(payload)
+    assert Workflow.send_workflow_completed_email(workflow) == :ok
+  after
+    :meck.unload(NotificationsPublisher)
+  end
+
+  test "send_workflow_completed_email - success with group" do
+    :meck.new(NotificationsPublisher, [:passthrough])
+    :meck.expect(NotificationsPublisher, :email_notification, fn _,_,recipients -> 
+      assert length(recipients) == 2
+      assert List.first(recipients) == "testing@oa.host.co"
+      assert List.last(recipients) == "someone@oa.host.co"
+      :ok 
+    end)
+
+    id = "#{UUID.uuid1()}"
+    payload = %{
+      id: id,
+      workflow_id: id,
+      deployment_repo: "deployment_repo",
+      deployment_repo_git_ref: "deployment_repo_git_ref",
+      source_repo: "source_repo",
+      source_repo_git_ref: "source_repo_git_ref",
+      source_commit_hash: "source_commit_hash",
+      milestones: [:build, :deploy],
+      current_step: :deploy,
+      workflow_completed: true,
+      workflow_error: true,
+      notifications_config: %{
+        email: %{
+          groups: %{
+            "build_team" => ["testing@oa.host.co", "someone@oa.host.co"]
+          },
+          events: %{
+            on_workflow_completed: ["build_team"]
+          }
+        }
+      }
+    }
+
+    workflow = Workflow.create_from_payload(payload)
+    assert Workflow.send_workflow_completed_email(workflow) == :ok
+  after
+    :meck.unload(NotificationsPublisher)
+  end
+
+  test "send_workflow_completed_email - failure" do
+    :meck.new(NotificationsPublisher, [:passthrough])
+    :meck.expect(NotificationsPublisher, :email_notification, fn _,_,_ -> {:error, "bad news bears"} end)   
+
+    id = "#{UUID.uuid1()}"
+    payload = %{
+      id: id,
+      workflow_id: id,
+      deployment_repo: "deployment_repo",
+      deployment_repo_git_ref: "deployment_repo_git_ref",
+      source_repo: "source_repo",
+      source_repo_git_ref: "source_repo_git_ref",
+      source_commit_hash: "source_commit_hash",
+      milestones: [:build, :deploy],
+      current_step: :deploy,
+      workflow_completed: true,
+      workflow_error: true,
+      notifications_config: %{
+        email: %{
+          events: %{
+            on_workflow_completed: ["testing@oa.host.co"]
+          }
+        }
+      }      
+    }
+
+    workflow = Workflow.create_from_payload(payload)
+    {status, reason} = Workflow.send_workflow_completed_email(workflow)
+    assert status == :error
+    assert reason != nil
+  after
+    :meck.unload(NotificationsPublisher)
+  end
 end

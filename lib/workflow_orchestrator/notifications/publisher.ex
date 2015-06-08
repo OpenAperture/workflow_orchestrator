@@ -67,28 +67,60 @@ defmodule OpenAperture.WorkflowOrchestrator.Notifications.Publisher do
   end
 
   @doc """
-  Publishes a HipChat notification, via an asynchronous request to the `server`.
+  Method to publish a email notification
 
-  This function returns `:ok` immediately, regardless of
-  whether the destination node or server does exists, unless
-  the server is specified as an atom.
+  ## Options
 
-  `handle_cast/2` will be called on the server to handle
-  the request. In case the server is a node which is not
-  yet connected to the caller one, the call is going to
-  block until a connection happens. This is different than
-  the behaviour in OTP's `:gen_server` where the message
-  would be sent by another process, which could cause
-  messages to arrive out of order.
+  The `exchange_id` option defines the exchange in which Notification messages should be sent
+
+  The `broker_id` option defines the broker to which the Notification messages should be sent
+
+  The `subject` option defines the email subject
+
+  The `message` option defines the body of the email
+
+  The `recipients` option defines an array of email addresses of recipients
+
+  ## Return Values
+
+  :ok | {:error, reason}   
   """
-  @spec handle_cast({:hipchat, Map}, Map) :: {:noreply, Map}
-  def handle_cast({:hipchat, payload}, state) do
-    hipchat_queue = QueueBuilder.build(ManagerApi.get_api, "notifications_hipchat", Configuration.get_current_exchange_id)
+  @spec email_notification(String.t, String.t(), List) :: :ok | {:error, String.t()}
+  def email_notification(subject, message, recipients) do
+    payload = %{
+      prefix: subject,
+      message: message, 
+      notifications: %{email_addresses: recipients}
+    }
+
+    GenServer.cast(__MODULE__, {:email, payload})
+  end  
+
+  @doc """
+  Publishes a notification, via an asynchronous request to the `server`.
+  
+  ## Options
+
+  The `notification_type` option defines an atom representing what type of notification should be sent (i.e. :hipchat, :email)
+
+  The `payload` option defines the Hipchat Notification payload that should be sent
+
+  The `state` option represents the server's current state
+  
+  ## Return Values
+
+  {:noreply, state}
+
+  """
+  @spec handle_cast({term, Map}, Map) :: {:noreply, Map}
+  def handle_cast({notification_type, payload}, state) do
+    notification_type_string = to_string(notification_type)
+    queue = QueueBuilder.build(ManagerApi.get_api, "notifications_#{notification_type_string}", Configuration.get_current_exchange_id)
 
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
-		case publish(options, hipchat_queue, payload) do
-			:ok -> Logger.debug("Successfully published HipChat notification")
-			{:error, reason} -> Logger.error("Failed to publish HipChat notification:  #{inspect reason}")
+		case publish(options, queue, payload) do
+			:ok -> Logger.debug("Successfully published #{notification_type_string} notification")
+			{:error, reason} -> Logger.error("Failed to publish #{notification_type_string} notification:  #{inspect reason}")
 		end
     {:noreply, state}
   end

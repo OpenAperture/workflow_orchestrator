@@ -21,6 +21,8 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   alias OpenAperture.Timex.Extensions, as: TimexExtensions
 
+  alias OpenAperture.WorkflowOrchestrator.Configuration
+
   @doc """
   This module contains the for interacting with a Workflow
   """
@@ -300,13 +302,19 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   @spec send_notification(Map, term, String.t()) :: Map
 	def send_notification(workflow_info, is_success, message) do
     deployment_repo = workflow_info[:deployment_repo] || "Unknown"
-		prefix = "[OA][#{workflow_info[:id]}][#{deployment_repo}]"
+		prefix = build_notification_prefix(workflow_info)
     Logger.debug("#{prefix} #{message}")
     workflow_info = add_event_to_log(workflow_info, message, prefix)
     NotificationsPublisher.hipchat_notification(is_success, prefix, message)
 
     workflow_info
 	end
+
+  @spec build_notification_prefix(Map) :: String.t()
+  defp build_notification_prefix(workflow_info) do
+    deployment_repo = workflow_info[:deployment_repo] || "Unknown"
+    "[OA][#{workflow_info[:id]}][#{deployment_repo}]"
+  end
 
   @doc """
   Method to add an event to the workflow's event log
@@ -326,7 +334,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   @spec add_event_to_log(Map, String.t(), String.t()) :: Map
   def add_event_to_log(workflow_info, event, prefix \\ nil) do
     if (prefix == nil) do
-      prefix = "[OA][#{workflow_info[:id]}]"
+      prefix = build_notification_prefix(workflow_info)
     end
 
     event_log = workflow_info[:event_log]
@@ -493,5 +501,49 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
     Agent.update(workflow, fn _ -> workflow_info end)
     save(workflow)
+  end
+
+  @doc """
+  Method to send an email notification indicating that the Workflow has completed
+
+  ## Options
+
+  The `workflow` option defines the Workflow referenced
+
+  ## Return Values
+
+  :ok | {:error, reason}
+  """
+  @spec send_workflow_completed_email(pid) :: :ok | {:error, String.t()}
+  def send_workflow_completed_email(workflow) do
+    workflow_info = get_info(workflow)
+    if workflow_info[:notifications_config][:email][:events][:on_workflow_completed] == nil do
+      Logger.debug("No emails were configured for Workflow #{workflow_info[:id]}")
+      :ok
+    else
+      recipients = if workflow_info[:notifications_config][:email][:groups] == nil do
+        workflow_info[:notifications_config][:email][:events][:on_workflow_completed]
+      else
+        Enum.reduce workflow_info[:notifications_config][:email][:events][:on_workflow_completed], [], fn(recipient, recipients) ->
+          #is this recipient a group?
+          if workflow_info[:notifications_config][:email][:groups][recipient] != nil do
+            recipients ++ workflow_info[:notifications_config][:email][:groups][recipient]
+          else
+            recipients ++ [recipient]
+          end
+        end
+      end
+
+      subject = build_notification_prefix(workflow_info)
+      if failed?(workflow) do
+        subject = "#{subject} Failed"
+      else
+        subject = "#{subject} Completed"
+      end
+
+      body = "For more information, please see:  #{Configuration.get_ui_url}/index.html#/oa/workflows/workflows/#{workflow_info[:id]}"
+      Logger.debug("Sending :on_workflow_completed email notification for Workflow #{workflow_info[:id]}")
+      NotificationsPublisher.email_notification(subject,body,recipients)
+    end
   end
 end

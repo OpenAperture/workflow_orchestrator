@@ -54,6 +54,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.expect(Workflow, :save, fn _ -> :ok end)
   	:meck.expect(Workflow, :complete?, fn _ -> true end)
     :meck.expect(Workflow, :failed?, fn _ -> false end)
+    :meck.expect(Workflow, :send_workflow_completed_email, fn _ -> :ok end)
   	
   	payload = %{
   	}
@@ -74,6 +75,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.expect(Workflow, :complete?, fn _ -> true end)
   	:meck.expect(Workflow, :resolve_next_milestone, fn _ -> :workflow_completed end)
     :meck.expect(Workflow, :failed?, fn _ -> false end)
+    :meck.expect(Workflow, :send_workflow_completed_email, fn _ -> :ok end)
   	  	
   	payload = %{
   	}
@@ -85,6 +87,23 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   after
   	:meck.unload(Workflow)    
   end  
+
+  test "workflow_starting - test email notification" do
+    :meck.new(Workflow, [:passthrough])
+    :meck.expect(Workflow, :save, fn _ -> :ok end)
+    :meck.expect(Workflow, :complete?, fn _ -> true end)  
+    :meck.expect(Workflow, :failed?, fn _ -> true end)
+    :meck.expect(Workflow, :workflow_failed, fn _,_ -> true end)
+    :meck.expect(Workflow, :send_workflow_completed_email, fn _ -> :ok end)
+    
+    payload = %{
+    }
+
+    {:reply, :in_progress, :workflow_completed, state_data} = WorkflowFSM.workflow_starting(%{}, %{}, %{workflow: payload})
+    assert state_data != nil
+  after
+    :meck.unload(Workflow)    
+  end
 
   # ============================
   # terminate tests
@@ -107,6 +126,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.expect(Workflow, :save, fn _ -> :ok end)
   	:meck.expect(Workflow, :complete?, fn _ -> true end)
     :meck.expect(Workflow, :failed?, fn _ -> false end)
+    :meck.expect(Workflow, :send_workflow_completed_email, fn _ -> :ok end)
   	
   	payload = %{
   	}
@@ -284,6 +304,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
     :meck.expect(Workflow, :workflow_failed, fn _,_ -> :ok end)
     :meck.expect(Workflow, :failed?, fn _ -> false end)
     :meck.expect(Workflow, :add_success_notification, fn _,_ -> :ok end)
+    :meck.expect(Workflow, :send_workflow_completed_email, fn _ -> :ok end)
 
     state_data = %{workflow_fsm_prefix: "[]", workflow: %{}, delivery_tag: "#{UUID.uuid1()}"}
     :meck.new(DeployerPublisher, [:passthrough])
@@ -350,6 +371,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
     :meck.expect(Workflow, :get_info, fn _ -> %{deploy_messaging_exchange_id: 789, etcd_token: "123abc"} end)
     :meck.expect(Workflow, :failed?, fn _ -> false end)
     :meck.expect(Workflow, :add_success_notification, fn _,_ -> :ok end)
+    :meck.expect(Workflow, :send_workflow_completed_email, fn _ -> :ok end)
 
     state_data = %{workflow_fsm_prefix: "[]", workflow: %{}, delivery_tag: "#{UUID.uuid1()}"}
     :meck.new(DeployerPublisher, [:passthrough])
@@ -386,6 +408,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.expect(Workflow, :get_info, fn _ -> %{} end)
   	:meck.expect(Workflow, :resolve_next_milestone, fn _ -> :deploy end)
     :meck.expect(Workflow, :failed?, fn _ -> false end)
+    :meck.expect(Workflow, :send_workflow_completed_email, fn _ -> :ok end)
 
   	orig_delivery_tag = "#{UUID.uuid1()}"
   	:meck.new(DeployerPublisher, [:passthrough])

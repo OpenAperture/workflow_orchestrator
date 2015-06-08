@@ -8,11 +8,9 @@ defmodule OpenAperture.WorkflowOrchestrator.DispatcherTests do
   alias OpenAperture.Messaging.AMQP.ConnectionPools
   alias OpenAperture.Messaging.AMQP.SubscriptionHandler
   alias OpenAperture.Messaging.ConnectionOptionsResolver
-  alias OpenAperture.Messaging.AMQP.Exchange, as: AMQPExchange
   alias OpenAperture.Messaging.AMQP.ConnectionOptions, as: AMQPConnectionOptions
   alias OpenAperture.Messaging.AMQP.QueueBuilder
 
-  alias OpenAperture.WorkflowOrchestrator.Configuration
   alias OpenAperture.WorkflowOrchestrator.WorkflowFSM
   alias OpenAperture.WorkflowOrchestrator.MessageManager
   

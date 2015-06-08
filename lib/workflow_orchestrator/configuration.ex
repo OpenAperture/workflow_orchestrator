@@ -47,6 +47,20 @@ defmodule OpenAperture.WorkflowOrchestrator.Configuration do
     get_config("QUEUE_NAME", :openaperture_overseer, :queue_name)
   end
 
+  @doc """
+  Method to retrieve the associated UI's url
+   
+  ## Options
+   
+  ## Return values
+
+  The exchange identifier
+  """ 
+  @spec get_ui_url() :: String.t()
+  def get_ui_url do
+    get_config("UI_URL", :openaperture_overseer, :ui_url)
+  end
+
   @doc false
   # Method to retrieve a configuration option from the environment or config settings
   # 
