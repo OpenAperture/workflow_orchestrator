@@ -768,12 +768,12 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
       workflow_completed: true,
       workflow_error: true,
       notifications_config: %{
-        email: %{
-          groups: %{
+        "email" => %{
+          "groups" => %{
             "build_team" => ["testing@oa.host.co", "someone@oa.host.co"]
           },
-          events: %{
-            on_workflow_completed: ["build_team"]
+          "events" => %{
+            "on_workflow_completed" => ["build_team"]
           }
         }
       }
@@ -803,9 +803,9 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
       workflow_completed: true,
       workflow_error: true,
       notifications_config: %{
-        email: %{
-          events: %{
-            on_workflow_completed: ["testing@oa.host.co"]
+        "email" => %{
+          "events" => %{
+            "on_workflow_completed" => ["testing@oa.host.co"]
           }
         }
       }      

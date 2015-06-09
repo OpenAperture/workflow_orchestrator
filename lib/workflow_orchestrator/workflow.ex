@@ -304,7 +304,10 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 		prefix = build_notification_prefix(workflow_info)
     Logger.debug("#{prefix} #{message}")
     workflow_info = add_event_to_log(workflow_info, message, prefix)
-    NotificationsPublisher.hipchat_notification(is_success, prefix, message)
+
+    #check for custom room names
+    room_names = workflow_info[:notifications_config]["hipchat"]["room_names"]
+    NotificationsPublisher.hipchat_notification(is_success, prefix, message, room_names)
 
     workflow_info
 	end
@@ -517,18 +520,17 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   def send_workflow_completed_email(workflow) do
     workflow_info = get_info(workflow)
 
-    Logger.debug("Notifications Configuration:  #{inspect workflow_info[:notifications_config]}")
-    if workflow_info[:notifications_config][:email][:events][:on_workflow_completed] == nil do
+    if workflow_info[:notifications_config]["email"]["events"]["on_workflow_completed"] == nil do
       Logger.debug("No emails were configured for Workflow #{workflow_info[:id]}")
       :ok
     else
-      recipients = if workflow_info[:notifications_config][:email][:groups] == nil do
-        workflow_info[:notifications_config][:email][:events][:on_workflow_completed]
+      recipients = if workflow_info[:notifications_config]["email"]["groups"] == nil do
+        workflow_info[:notifications_config]["email"]["events"]["on_workflow_completed"]
       else
-        Enum.reduce workflow_info[:notifications_config][:email][:events][:on_workflow_completed], [], fn(recipient, recipients) ->
+        Enum.reduce workflow_info[:notifications_config]["email"]["events"]["on_workflow_completed"], [], fn(recipient, recipients) ->
           #is this recipient a group?
-          if workflow_info[:notifications_config][:email][:groups][recipient] != nil do
-            recipients ++ workflow_info[:notifications_config][:email][:groups][recipient]
+          if workflow_info[:notifications_config]["email"]["groups"][recipient] != nil do
+            recipients ++ workflow_info[:notifications_config]["email"]["groups"][recipient]
           else
             recipients ++ [recipient]
           end
