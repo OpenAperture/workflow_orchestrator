@@ -516,6 +516,8 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   @spec send_workflow_completed_email(pid) :: :ok | {:error, String.t()}
   def send_workflow_completed_email(workflow) do
     workflow_info = get_info(workflow)
+
+    Logger.debug("Notifications Configuration:  #{inspect workflow_info[:notifications_config]}")
     if workflow_info[:notifications_config][:email][:events][:on_workflow_completed] == nil do
       Logger.debug("No emails were configured for Workflow #{workflow_info[:id]}")
       :ok
