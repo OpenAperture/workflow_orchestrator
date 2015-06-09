@@ -132,7 +132,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
   
   test "resolve_next_milestone - no milestones" do
   	:meck.new(NotificationsPublisher, [:passthrough])
-  	:meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
+  	:meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _,_ -> :ok end)
 
   	:meck.new(WorkflowAPI, [:passthrough])
   	:meck.expect(WorkflowAPI, :update_workflow, fn _, _, _ -> %Response{status: 204} end)  	
@@ -158,7 +158,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
 
   test "resolve_next_milestone - no milestones 2" do
   	:meck.new(NotificationsPublisher, [:passthrough])
-  	:meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
+  	:meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _,_ -> :ok end)
 
   	:meck.new(WorkflowAPI, [:passthrough])
   	:meck.expect(WorkflowAPI, :update_workflow, fn _, _, _ -> %Response{status: 204} end)  	
@@ -191,7 +191,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
 
   test "resolve_next_milestone - nil milestones" do
     :meck.new(NotificationsPublisher, [:passthrough])
-    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
+    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _,_ -> :ok end)
 
     :meck.new(WorkflowAPI, [:passthrough])
     :meck.expect(WorkflowAPI, :update_workflow, fn _, _, _ -> %Response{status: 204} end)   
@@ -224,7 +224,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
 
   test "resolve_next_milestone - build" do
   	:meck.new(NotificationsPublisher, [:passthrough])
-  	:meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
+  	:meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _,_ -> :ok end)
 
   	:meck.new(WorkflowAPI, [:passthrough])
   	:meck.expect(WorkflowAPI, :update_workflow, fn _, _, _ -> %Response{status: 204} end)  	
@@ -258,7 +258,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
 
   test "resolve_next_milestone - deploy" do
   	:meck.new(NotificationsPublisher, [:passthrough])
-  	:meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
+  	:meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _,_ -> :ok end)
 
   	:meck.new(WorkflowAPI, [:passthrough])
   	:meck.expect(WorkflowAPI, :update_workflow, fn _, _, _ -> %Response{status: 204} end)  	
@@ -297,7 +297,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
 
   test "add_success_notification" do
     :meck.new(NotificationsPublisher, [:passthrough])
-    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
+    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _,_ -> :ok end)
 
     id = "#{UUID.uuid1()}"
     payload = %{
@@ -327,7 +327,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
 
   test "add_failure_notification" do
     :meck.new(NotificationsPublisher, [:passthrough])
-    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
+    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _,_ -> :ok end)
 
     id = "#{UUID.uuid1()}"
     payload = %{
@@ -357,7 +357,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
 
   test "send_success_notification" do
     :meck.new(NotificationsPublisher, [:passthrough])
-    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
+    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _,_ -> :ok end)
 
   	id = "#{UUID.uuid1()}"
   	payload = %{
@@ -388,7 +388,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
 
   test "send_failure_notification" do
     :meck.new(NotificationsPublisher, [:passthrough])
-    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
+    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _,_ -> :ok end)
 
   	id = "#{UUID.uuid1()}"
   	payload = %{
@@ -419,7 +419,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
 
   test "send_notification" do
     :meck.new(NotificationsPublisher, [:passthrough])
-    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
+    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _,_ -> :ok end)
 
   	id = "#{UUID.uuid1()}"
   	payload = %{
@@ -450,7 +450,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
 
   test "add_event_to_log" do
     :meck.new(NotificationsPublisher, [:passthrough])
-    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _ -> :ok end)
+    :meck.expect(NotificationsPublisher, :hipchat_notification, fn _, _, _,_ -> :ok end)
 
   	id = "#{UUID.uuid1()}"
   	payload = %{
