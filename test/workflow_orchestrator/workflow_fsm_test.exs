@@ -116,7 +116,13 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   # workflow_completed tests
 
   test "workflow_completed - success" do
+    :meck.new(Workflow, [:passthrough])
+    :meck.expect(Workflow, :complete?, fn _ -> true end)
+    :meck.expect(Workflow, :send_workflow_completed_email, fn _ -> :ok end)
+
 		assert WorkflowFSM.workflow_completed(:workflow_completed, nil, %{workflow: %{}}) == {:stop, :normal, {:completed, %{}}, %{workflow: %{}}}
+  after
+    :meck.unload(Workflow)
   end
 
   test "workflow_completed - completed without any milestones through FSM" do
@@ -136,7 +142,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
     assert result == :completed
     assert workflow != nil
   after
-  	:meck.unload(Workflow)  
+  	:meck.unload(Workflow)
   end
 
   # ============================

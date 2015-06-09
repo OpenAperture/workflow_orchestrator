@@ -236,7 +236,6 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
           Logger.debug("#{state_data[:workflow_fsm_prefix]} Workflow is complete")
         end
 
-        Workflow.send_workflow_completed_email(state_data[:workflow])
         {:reply, :in_progress, :workflow_completed, state_data}
       false -> 
         Logger.debug("#{state_data[:workflow_fsm_prefix]} Workflow has not finished, resolving next milestone...")
@@ -264,6 +263,11 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   @spec workflow_completed(term, term, Map) :: {:stop, :normal, {:completed, pid}, Map}
   def workflow_completed(_current_state, _from, state_data) do
     Logger.debug("#{state_data[:workflow_fsm_prefix]} Finishing Workflow Orchestration...")
+
+    if Workflow.complete?(state_data[:workflow]) do
+      Workflow.send_workflow_completed_email(state_data[:workflow])
+    end
+
     Dispatcher.acknowledge(state_data[:delivery_tag])
     {:stop, :normal, {:completed, state_data[:workflow]}, state_data}
   end
