@@ -73,7 +73,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   """
   @spec execute(pid) :: :completed
   def execute(workflowfsm) do
-    case :gen_fsm.sync_send_event(workflowfsm, :execute_next_workflow_step) do
+    case :gen_fsm.sync_send_event(workflowfsm, :execute_next_workflow_step, 15000) do
       :in_progress -> execute(workflowfsm)
       {result, workflow} -> {result, workflow}
     end
