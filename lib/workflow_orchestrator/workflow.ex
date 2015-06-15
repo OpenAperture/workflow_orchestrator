@@ -545,7 +545,11 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
       end
 
       body = "For more information, please see:  #{Configuration.get_ui_url}/index.html#/oa/workflows/workflows/#{workflow_info[:id]}"
-      Logger.debug("Sending :on_workflow_completed email notification for Workflow #{workflow_info[:id]}")
+
+      workflow_info = send_success_notification(workflow_info, "Sending :on_workflow_completed email notification to the following recipient(s):  #{inspect recipients}")
+      Agent.update(workflow, fn _ -> workflow_info end)
+      save(workflow)
+
       NotificationsPublisher.email_notification(subject,body,recipients)
     end
   end
