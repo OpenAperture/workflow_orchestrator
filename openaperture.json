@@ -1,0 +1,25 @@
+{
+    "deployments": {
+        "cloudos_repo": "OpenAperture/notifications_docker",
+        "cloudos_repo_branch": "master",
+        "notifications": {
+            "hipchat": {
+                "room_names": [
+                    "OpenAperture-Workflow Events"
+                ]
+            },
+            "email": {
+                "groups": {
+                    "build-notifications": [
+                        "cloud-devops@perceptivesoftware.com"
+                    ]
+                },
+                "events": {
+                    "on_workflow_completed": [
+                        "build-notifications"
+                    ]
+                }
+            }
+        }
+    }
+}
