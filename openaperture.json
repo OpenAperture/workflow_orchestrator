@@ -1,6 +1,6 @@
 {
     "deployments": {
-        "cloudos_repo": "OpenAperture/notifications_docker",
+        "cloudos_repo": "OpenAperture/workflow_orchestrator_docker",
         "cloudos_repo_branch": "master",
         "notifications": {
             "hipchat": {
