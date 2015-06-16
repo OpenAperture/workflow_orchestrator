@@ -539,9 +539,9 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
       subject = build_notification_prefix(workflow_info)
       if failed?(workflow) do
-        subject = "#{subject} Failed"
+        subject = "FAILED - #{subject}"
       else
-        subject = "#{subject} Completed"
+        subject = "SUCCEEDED #{subject}"
       end
 
       body = "For more information, please see:  #{Configuration.get_ui_url}/index.html#/oa/workflows/workflows/#{workflow_info[:id]}"
