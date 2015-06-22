@@ -16,7 +16,7 @@
   "meck": {:hex, :meck, "0.8.2"},
   "openaperture_auth": {:git, "https://github.com/OpenAperture/auth.git", "227f10bc6108176523b96f016f2fc57adb472320", [ref: "227f10bc6108176523b96f016f2fc57adb472320"]},
   "openaperture_fleet": {:git, "https://github.com/OpenAperture/fleet.git", "2e63b7889c76f4d3b749146f3ebceb01702cf012", [ref: "2e63b7889c76f4d3b749146f3ebceb01702cf012"]},
-  "openaperture_manager_api": {:git, "https://github.com/OpenAperture/manager_api.git", "61667cf63f56aa6967fb021a138682d961241917", [ref: "61667cf63f56aa6967fb021a138682d961241917"]},
+  "openaperture_manager_api": {:git, "https://github.com/OpenAperture/manager_api.git", "bc92a7592396bb631ea3b2ea9862fe0ac3ad39eb", [ref: "bc92a7592396bb631ea3b2ea9862fe0ac3ad39eb"]},
   "openaperture_messaging": {:git, "https://github.com/OpenAperture/messaging.git", "8c51d099ec79473b23b3c385c072e6bf2219fba7", [ref: "8c51d099ec79473b23b3c385c072e6bf2219fba7"]},
   "openaperture_overseer_api": {:git, "https://github.com/OpenAperture/overseer_api.git", "4d65d2295f2730bc74ec695c32fa0d2478158182", [ref: "4d65d2295f2730bc74ec695c32fa0d2478158182"]},
   "openaperture_workflow_orchestrator_api": {:git, "https://github.com/OpenAperture/workflow_orchestrator_api.git", "6a30773415161146aeb0e07c6b2f456d1e0d8d48", [ref: "6a30773415161146aeb0e07c6b2f456d1e0d8d48"]},

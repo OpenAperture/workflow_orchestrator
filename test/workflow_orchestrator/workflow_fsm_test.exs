@@ -149,23 +149,48 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   # build tests
 
   test "build - resolution failed" do
-  	:meck.new(Workflow, [:passthrough])
-  	:meck.expect(Workflow, :workflow_failed, fn _, _ -> :ok end)
+    :meck.new(Workflow, [:passthrough])
+    :meck.expect(Workflow, :workflow_failed, fn _, _ -> :ok end)
     :meck.expect(Workflow, :failed?, fn _ -> true end)
     :meck.expect(Workflow, :get_info, fn _ -> %{} end)
 
-  	:meck.new(DockerHostResolver, [:passthrough])
-  	:meck.expect(DockerHostResolver, :next_available, fn -> {nil, nil} end)  	
+    :meck.new(DockerHostResolver, [:passthrough])
+    :meck.expect(DockerHostResolver, :next_available, fn -> {nil, nil} end)   
 
-  	:meck.new(Dispatcher, [:passthrough])
-  	:meck.expect(Dispatcher, :acknowledge, fn _ -> :ok end)  	
+    :meck.new(Dispatcher, [:passthrough])
+    :meck.expect(Dispatcher, :acknowledge, fn _ -> :ok end)   
 
-  	state_data = %{workflow_fsm_prefix: "[]", workflow: %{}}
-		assert WorkflowFSM.build(:workflow_completed, nil, state_data) == {:reply, :in_progress, :workflow_completed, state_data}
+    state_data = %{workflow_fsm_prefix: "[]", workflow: %{}}
+    assert WorkflowFSM.build(:workflow_completed, nil, state_data) == {:reply, :in_progress, :workflow_completed, state_data}
   after
-  	:meck.unload(Workflow)
-  	:meck.unload(DockerHostResolver)
-  	:meck.unload(Dispatcher)
+    :meck.unload(Workflow)
+    :meck.unload(DockerHostResolver)
+    :meck.unload(Dispatcher)
+  end
+
+  test "build - no builders available" do
+    :meck.new(Workflow, [:passthrough])
+    :meck.expect(Workflow, :workflow_failed, fn _, _ -> :ok end)
+    :meck.expect(Workflow, :failed?, fn _ -> true end)
+    :meck.expect(Workflow, :get_info, fn _ -> %{} end)
+
+    :meck.new(DockerHostResolver, [:passthrough])
+    :meck.expect(DockerHostResolver, :next_available, fn -> {123, %{"etcd_token" => "123456789000"}} end)
+
+    :meck.new(Dispatcher, [:passthrough])
+    :meck.expect(Dispatcher, :acknowledge, fn _ -> :ok end)   
+
+    :meck.new(OpenAperture.ManagerApi.MessagingExchange, [:passthrough])
+    :meck.expect(OpenAperture.ManagerApi.MessagingExchange, :exchange_has_modules_of_type?, fn _, _ -> false end)
+
+
+    state_data = %{workflow_fsm_prefix: "[]", workflow: %{}}
+    assert WorkflowFSM.build(:workflow_completed, nil, state_data) == {:reply, :in_progress, :workflow_completed, state_data}
+  after
+    :meck.unload(Workflow)
+    :meck.unload(DockerHostResolver)
+    :meck.unload(Dispatcher)
+    :meck.unload(OpenAperture.ManagerApi.MessagingExchange)
   end
 
   test "build - success" do
@@ -174,6 +199,8 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.expect(Workflow, :get_info, fn _ -> %{} end)
     :meck.expect(Workflow, :failed?, fn _ -> false end)
     :meck.expect(Workflow, :add_success_notification, fn _,_ -> :ok end)
+    :meck.new(OpenAperture.ManagerApi.MessagingExchange, [:passthrough])
+    :meck.expect(OpenAperture.ManagerApi.MessagingExchange, :exchange_has_modules_of_type?, fn _, _ -> true end)
 
   	state_data = %{workflow_fsm_prefix: "[]", workflow: %{}, delivery_tag: "#{UUID.uuid1()}"}
   	:meck.new(BuilderPublisher, [:passthrough])
@@ -200,6 +227,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.unload(Workflow) 
   	:meck.unload(DockerHostResolver)	
   	:meck.unload(BuilderPublisher)
+    :meck.unload(OpenAperture.ManagerApi.MessagingExchange)
   end
 
   test "build - success, override messaging_exchange_id" do
@@ -208,6 +236,9 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
     :meck.expect(Workflow, :get_info, fn _ -> %{build_messaging_exchange_id: 789} end)
     :meck.expect(Workflow, :failed?, fn _ -> false end)
     :meck.expect(Workflow, :add_success_notification, fn _,_ -> :ok end)
+    :meck.new(OpenAperture.ManagerApi.MessagingExchange, [:passthrough])
+    :meck.expect(OpenAperture.ManagerApi.MessagingExchange, :exchange_has_modules_of_type?, fn _, _ -> true end)
+
 
     state_data = %{workflow_fsm_prefix: "[]", workflow: %{}, delivery_tag: "#{UUID.uuid1()}"}
     :meck.new(BuilderPublisher, [:passthrough])
@@ -234,6 +265,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
     :meck.unload(Workflow) 
     :meck.unload(DockerHostResolver)  
     :meck.unload(BuilderPublisher)
+    :meck.unload(OpenAperture.ManagerApi.MessagingExchange)
   end
 
   test "build - success through FSM" do
@@ -246,6 +278,9 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.expect(Workflow, :resolve_next_milestone, fn _ -> :build end)
     :meck.expect(Workflow, :failed?, fn _ -> false end)
     :meck.expect(Workflow, :add_success_notification, fn _,_ -> :ok end)
+    :meck.new(OpenAperture.ManagerApi.MessagingExchange, [:passthrough])
+    :meck.expect(OpenAperture.ManagerApi.MessagingExchange, :exchange_has_modules_of_type?, fn _, _ -> true end)
+
 
   	orig_delivery_tag = "#{UUID.uuid1()}"
   	:meck.new(BuilderPublisher, [:passthrough])
@@ -278,6 +313,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   	:meck.unload(Workflow) 
   	:meck.unload(BuilderPublisher) 
   	:meck.unload(DockerHostResolver)
+    :meck.unload(OpenAperture.ManagerApi.MessagingExchange)
   end
  
 
