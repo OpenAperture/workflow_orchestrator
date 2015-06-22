@@ -169,8 +169,13 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   end
 
   test "build - no builders available" do
+    {:ok, pid} = Agent.start_link(fn -> false end);
     :meck.new(Workflow, [:passthrough])
-    :meck.expect(Workflow, :workflow_failed, fn _, _ -> :ok end)
+    :meck.expect(Workflow, :workflow_failed, fn _, msg -> 
+                          assert msg == "Unable to request build - no build clusters are available in exchange 123!"
+                          Agent.update(pid, fn _ -> true end)
+                          :ok
+                        end)
     :meck.expect(Workflow, :failed?, fn _ -> true end)
     :meck.expect(Workflow, :get_info, fn _ -> %{} end)
 
@@ -186,6 +191,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
 
     state_data = %{workflow_fsm_prefix: "[]", workflow: %{}}
     assert WorkflowFSM.build(:workflow_completed, nil, state_data) == {:reply, :in_progress, :workflow_completed, state_data}
+    assert Agent.get(pid, &(&1))
   after
     :meck.unload(Workflow)
     :meck.unload(DockerHostResolver)
