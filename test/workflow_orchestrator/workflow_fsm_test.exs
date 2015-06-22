@@ -321,22 +321,50 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   # deploy tests
 
   test "deploy - resolution failed" do
-  	:meck.new(Workflow, [:passthrough])
-  	:meck.expect(Workflow, :workflow_failed, fn _, _ -> :ok end)
-  	:meck.expect(Workflow, :get_info, fn _ -> %{} end)
+    :meck.new(Workflow, [:passthrough])
+    :meck.expect(Workflow, :workflow_failed, fn _, _ -> :ok end)
+    :meck.expect(Workflow, :get_info, fn _ -> %{} end)
 
-  	:meck.new(EtcdClusterMessagingResolver, [:passthrough])
-  	:meck.expect(EtcdClusterMessagingResolver, :exchange_for_cluster, fn _ -> nil end)
+    :meck.new(EtcdClusterMessagingResolver, [:passthrough])
+    :meck.expect(EtcdClusterMessagingResolver, :exchange_for_cluster, fn _ -> nil end)
 
-  	:meck.new(Dispatcher, [:passthrough])
-  	:meck.expect(Dispatcher, :acknowledge, fn _ -> :ok end)  	
+    :meck.new(Dispatcher, [:passthrough])
+    :meck.expect(Dispatcher, :acknowledge, fn _ -> :ok end)   
 
-  	state_data = %{workflow_fsm_prefix: "[]", workflow: %{}}
-		assert WorkflowFSM.deploy(:workflow_completed, nil, state_data) == {:reply, :in_progress, :workflow_completed, state_data}
+    state_data = %{workflow_fsm_prefix: "[]", workflow: %{}}
+    assert WorkflowFSM.deploy(:workflow_completed, nil, state_data) == {:reply, :in_progress, :workflow_completed, state_data}
   after
-  	:meck.unload(Workflow)
-  	:meck.unload(EtcdClusterMessagingResolver)
-  	:meck.unload(Dispatcher)
+    :meck.unload(Workflow)
+    :meck.unload(EtcdClusterMessagingResolver)
+    :meck.unload(Dispatcher)
+  end
+
+  test "deploy - no deployers" do
+    {:ok, pid} = Agent.start_link(fn -> false end);
+    :meck.new(Workflow, [:passthrough])
+    :meck.expect(Workflow, :workflow_failed, fn _, msg -> 
+                          assert msg == "Unable to request deploy - no deploy clusters are available in exchange 123!"
+                          Agent.update(pid, fn _ -> true end)
+                          :ok
+                        end)
+    :meck.expect(Workflow, :get_info, fn _ -> %{etcd_token: "123abc"} end)
+
+    :meck.new(EtcdClusterMessagingResolver, [:passthrough])
+    :meck.expect(EtcdClusterMessagingResolver, :exchange_for_cluster, fn _ -> 123 end)
+
+    :meck.new(Dispatcher, [:passthrough])
+    :meck.expect(Dispatcher, :acknowledge, fn _ -> :ok end)   
+    :meck.new(OpenAperture.ManagerApi.MessagingExchange, [:passthrough])
+    :meck.expect(OpenAperture.ManagerApi.MessagingExchange, :exchange_has_modules_of_type?, fn _, _ -> false end)
+
+    state_data = %{workflow_fsm_prefix: "[]", workflow: %{}}
+    assert WorkflowFSM.deploy(:workflow_completed, nil, state_data) == {:reply, :in_progress, :workflow_completed, state_data}
+    assert Agent.get(pid, &(&1))
+  after
+    :meck.unload(Workflow)
+    :meck.unload(EtcdClusterMessagingResolver)
+    :meck.unload(Dispatcher)
+    :meck.unload(OpenAperture.ManagerApi.MessagingExchange)
   end
 
   test "deploy - failed - no etcd_token" do
@@ -399,12 +427,15 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
 
   	:meck.new(EtcdClusterMessagingResolver, [:passthrough])
   	:meck.expect(EtcdClusterMessagingResolver, :exchange_for_cluster, fn _ -> 123 end)
+    :meck.new(OpenAperture.ManagerApi.MessagingExchange, [:passthrough])
+    :meck.expect(OpenAperture.ManagerApi.MessagingExchange, :exchange_has_modules_of_type?, fn _, _ -> true end)
   	
 		assert WorkflowFSM.deploy(:workflow_completed, nil, state_data) == {:reply, :in_progress, :workflow_completed, state_data}
   after
   	:meck.unload(Workflow) 
   	:meck.unload(EtcdClusterMessagingResolver)	
-  	:meck.unload(DeployerPublisher)
+    :meck.unload(DeployerPublisher)
+    :meck.unload(OpenAperture.ManagerApi.MessagingExchange)
   end
 
   test "deploy - success, override messaging_exchange_id" do
@@ -433,12 +464,15 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
 
     :meck.new(EtcdClusterMessagingResolver, [:passthrough])
     :meck.expect(EtcdClusterMessagingResolver, :exchange_for_cluster, fn _ -> 123 end)
-    
+    :meck.new(OpenAperture.ManagerApi.MessagingExchange, [:passthrough])
+    :meck.expect(OpenAperture.ManagerApi.MessagingExchange, :exchange_has_modules_of_type?, fn _, _ -> true end)
+
     assert WorkflowFSM.deploy(:workflow_completed, nil, state_data) == {:reply, :in_progress, :workflow_completed, state_data}
   after
     :meck.unload(Workflow) 
     :meck.unload(EtcdClusterMessagingResolver)  
     :meck.unload(DeployerPublisher)
+    :meck.unload(OpenAperture.ManagerApi.MessagingExchange)
   end
 
   test "deploy - success through FSM" do

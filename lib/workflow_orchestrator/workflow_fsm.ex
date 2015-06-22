@@ -364,23 +364,26 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
         messaging_exchange_id = EtcdClusterMessagingResolver.exchange_for_cluster(workflow_info[:etcd_token])
       end
 
-      if messaging_exchange_id == nil do
-        Workflow.workflow_failed(state_data[:workflow], "Unable to request deploy to cluster #{workflow_info[:etcd_token]} - cluster is not associated with an exchange!")
-      else
-        Workflow.add_success_notification(state_data[:workflow], "Dispatching a deploy request to exchange #{messaging_exchange_id}, deployment cluster #{workflow_info[:etcd_token]}...")
+      cond do
+        messaging_exchange_id == nil ->
+          Workflow.workflow_failed(state_data[:workflow], "Unable to request deploy to cluster #{workflow_info[:etcd_token]} - cluster is not associated with an exchange!")
+        !OpenAperture.ManagerApi.MessagingExchange.exchange_has_modules_of_type?(messaging_exchange_id, "deploy") ->
+          Workflow.workflow_failed(state_data[:workflow], "Unable to request deploy - no deploy clusters are available in exchange #{messaging_exchange_id}!")
+        true ->
+          Workflow.add_success_notification(state_data[:workflow], "Dispatching a deploy request to exchange #{messaging_exchange_id}, deployment cluster #{workflow_info[:etcd_token]}...")
 
-        #default entries for all communications to children
-        request = OrchestratorRequest.from_payload(Workflow.get_info(state_data[:workflow]))
-        request = %{request | notifications_exchange_id: Configuration.get_current_exchange_id}
-        request = %{request | notifications_broker_id: Configuration.get_current_broker_id}
-        request = %{request | workflow_orchestration_exchange_id: Configuration.get_current_exchange_id}
-        request = %{request | workflow_orchestration_broker_id: Configuration.get_current_broker_id}
-        request = %{request | orchestration_queue_name: "workflow_orchestration"}
+          #default entries for all communications to children
+          request = OrchestratorRequest.from_payload(Workflow.get_info(state_data[:workflow]))
+          request = %{request | notifications_exchange_id: Configuration.get_current_exchange_id}
+          request = %{request | notifications_broker_id: Configuration.get_current_broker_id}
+          request = %{request | workflow_orchestration_exchange_id: Configuration.get_current_exchange_id}
+          request = %{request | workflow_orchestration_broker_id: Configuration.get_current_broker_id}
+          request = %{request | orchestration_queue_name: "workflow_orchestration"}
 
-        Logger.debug("#{state_data[:workflow_fsm_prefix]} Saving workflow...")
-        Workflow.save(state_data[:workflow])
+          Logger.debug("#{state_data[:workflow_fsm_prefix]} Saving workflow...")
+          Workflow.save(state_data[:workflow])
 
-        DeployerPublisher.deploy(state_data[:delivery_tag], messaging_exchange_id, OrchestratorRequest.to_payload(request))       
+          DeployerPublisher.deploy(state_data[:delivery_tag], messaging_exchange_id, OrchestratorRequest.to_payload(request))       
       end
     end
 
