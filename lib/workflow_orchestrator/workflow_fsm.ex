@@ -305,7 +305,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
     cond do
       docker_build_etcd_cluster == nil ->
         Workflow.workflow_failed(state_data[:workflow], "Unable to request build - no build clusters are available!")
-      !OpenAperture.ManagerApi.MessagingExchange.exchange_has_modules_of_type?(messaging_exchange_id, "build") ->
+      !OpenAperture.ManagerApi.MessagingExchange.exchange_has_modules_of_type?(messaging_exchange_id, "builder") ->
         Workflow.workflow_failed(state_data[:workflow], "Unable to request build - no build clusters are available in exchange #{messaging_exchange_id}!")
       true ->        
         Workflow.add_success_notification(state_data[:workflow], "Dispatching a build request to exchange #{messaging_exchange_id}, docker build cluster #{docker_build_etcd_cluster["etcd_token"]}...")
@@ -367,7 +367,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
       cond do
         messaging_exchange_id == nil ->
           Workflow.workflow_failed(state_data[:workflow], "Unable to request deploy to cluster #{workflow_info[:etcd_token]} - cluster is not associated with an exchange!")
-        !OpenAperture.ManagerApi.MessagingExchange.exchange_has_modules_of_type?(messaging_exchange_id, "deploy") ->
+        !OpenAperture.ManagerApi.MessagingExchange.exchange_has_modules_of_type?(messaging_exchange_id, "deployer") ->
           Workflow.workflow_failed(state_data[:workflow], "Unable to request deploy - no deploy clusters are available in exchange #{messaging_exchange_id}!")
         true ->
           Workflow.add_success_notification(state_data[:workflow], "Dispatching a deploy request to exchange #{messaging_exchange_id}, deployment cluster #{workflow_info[:etcd_token]}...")
