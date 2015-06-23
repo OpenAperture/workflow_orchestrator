@@ -172,7 +172,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
     {:ok, pid} = Agent.start_link(fn -> false end);
     :meck.new(Workflow, [:passthrough])
     :meck.expect(Workflow, :workflow_failed, fn _, msg -> 
-                          assert msg == "Unable to request build - no build clusters are available in exchange 123!"
+                          assert msg == "Unable to request build - no Builers are currently accessible in exchange 123!"
                           Agent.update(pid, fn _ -> true end)
                           :ok
                         end)
