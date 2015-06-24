@@ -294,7 +294,16 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   """
   @spec build(term, term, Map) :: {:reply, :in_progress, :workflow_completed, Map}
   def build(_event, _from, state_data) do  
-    Logger.debug("#{state_data[:workflow_fsm_prefix]} Requesting build...")   
+    do_build(state_data, "build")
+  end
+
+  @spec config(term, term, Map) :: {:reply, :in_progress, :workflow_completed, Map}
+  def config(_event, _from, state_data) do  
+    do_build(state_data, "config")
+  end
+
+  def do_build(state_data, type) do
+    Logger.debug("#{state_data[:workflow_fsm_prefix]} Requesting #{type}...")   
     {messaging_exchange_id, docker_build_etcd_cluster} = DockerHostResolver.next_available
 
     workflow_info = Workflow.get_info(state_data[:workflow])
@@ -304,11 +313,11 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
     end    
     cond do
       docker_build_etcd_cluster == nil ->
-        Workflow.workflow_failed(state_data[:workflow], "Unable to request build - no build clusters are available!")
+        Workflow.workflow_failed(state_data[:workflow], "Unable to request #{type} - no build clusters are available!")
       !OpenAperture.ManagerApi.MessagingExchange.exchange_has_modules_of_type?(messaging_exchange_id, "builder") ->
-        Workflow.workflow_failed(state_data[:workflow], "Unable to request build - no Builers are currently accessible in exchange #{messaging_exchange_id}!")
+        Workflow.workflow_failed(state_data[:workflow], "Unable to request #{type} - no Builers are currently accessible in exchange #{messaging_exchange_id}!")
       true ->        
-        Workflow.add_success_notification(state_data[:workflow], "Dispatching a build request to exchange #{messaging_exchange_id}, docker build cluster #{docker_build_etcd_cluster["etcd_token"]}...")
+        Workflow.add_success_notification(state_data[:workflow], "Dispatching a #{type} request to exchange #{messaging_exchange_id}, docker build cluster #{docker_build_etcd_cluster["etcd_token"]}...")
 
         request = OrchestratorRequest.from_payload(Workflow.get_info(state_data[:workflow]))
         request = %{request | docker_build_etcd_token: docker_build_etcd_cluster["etcd_token"]}
