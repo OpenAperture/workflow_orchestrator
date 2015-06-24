@@ -172,12 +172,13 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
     {:ok, pid} = Agent.start_link(fn -> false end);
     :meck.new(Workflow, [:passthrough])
     :meck.expect(Workflow, :workflow_failed, fn _, msg -> 
-                          assert msg == "Unable to request build - no Builers are currently accessible in exchange 123!"
+                          assert msg == "Unable to request build - no Builders are currently accessible in exchange 123!"
                           Agent.update(pid, fn _ -> true end)
                           :ok
                         end)
     :meck.expect(Workflow, :failed?, fn _ -> true end)
-    :meck.expect(Workflow, :get_info, fn _ -> %{} end)
+
+    :meck.expect(Workflow, :get_info, fn _ -> %{current_step: "build"} end)
 
     :meck.new(DockerHostResolver, [:passthrough])
     :meck.expect(DockerHostResolver, :next_available, fn -> {123, %{"etcd_token" => "123456789000"}} end)
