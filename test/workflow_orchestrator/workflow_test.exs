@@ -692,6 +692,9 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
     :meck.new(NotificationsPublisher, [:passthrough])
     :meck.expect(NotificationsPublisher, :email_notification, fn _,_,_ -> :ok end)   
 
+    :meck.new(WorkflowAPI, [:passthrough])
+    :meck.expect(WorkflowAPI, :update_workflow, fn _, _, _ -> %Response{status: 204} end)      
+
     id = "#{UUID.uuid1()}"
     payload = %{
       id: id,
@@ -711,11 +714,15 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
     assert Workflow.send_workflow_completed_email(workflow) == :ok
   after
     :meck.unload(NotificationsPublisher)
+    :meck.unload(WorkflowAPI)
   end
 
   test "send_workflow_completed_email - success" do
     :meck.new(NotificationsPublisher, [:passthrough])
     :meck.expect(NotificationsPublisher, :email_notification, fn _,_,_ -> :ok end)   
+
+    :meck.new(WorkflowAPI, [:passthrough])
+    :meck.expect(WorkflowAPI, :update_workflow, fn _, _, _ -> %Response{status: 204} end)    
 
     id = "#{UUID.uuid1()}"
     payload = %{
@@ -743,6 +750,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
     assert Workflow.send_workflow_completed_email(workflow) == :ok
   after
     :meck.unload(NotificationsPublisher)
+    :meck.unload(WorkflowAPI)
   end
 
   test "send_workflow_completed_email - success with group" do
@@ -753,6 +761,9 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
       assert List.last(recipients) == "someone@oa.host.co"
       :ok 
     end)
+
+    :meck.new(WorkflowAPI, [:passthrough])
+    :meck.expect(WorkflowAPI, :update_workflow, fn _, _, _ -> %Response{status: 204} end)           
 
     id = "#{UUID.uuid1()}"
     payload = %{
@@ -783,11 +794,15 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
     assert Workflow.send_workflow_completed_email(workflow) == :ok
   after
     :meck.unload(NotificationsPublisher)
+    :meck.unload(WorkflowAPI)
   end
 
   test "send_workflow_completed_email - failure" do
     :meck.new(NotificationsPublisher, [:passthrough])
     :meck.expect(NotificationsPublisher, :email_notification, fn _,_,_ -> {:error, "bad news bears"} end)   
+
+    :meck.new(WorkflowAPI, [:passthrough])
+    :meck.expect(WorkflowAPI, :update_workflow, fn _, _, _ -> %Response{status: 204} end)       
 
     id = "#{UUID.uuid1()}"
     payload = %{
@@ -817,5 +832,6 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
     assert reason != nil
   after
     :meck.unload(NotificationsPublisher)
+    :meck.unload(WorkflowAPI)
   end
 end

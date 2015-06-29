@@ -304,8 +304,6 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   def call_builder(state_data) do
     type = Workflow.get_info(state_data[:workflow])[:current_step]
-    IO.inspect state_data[:workflow]
-    IO.inspect Workflow.get_info(state_data[:workflow])
     Logger.debug("#{state_data[:workflow_fsm_prefix]} Requesting #{type}...")   
     {messaging_exchange_id, docker_build_etcd_cluster} = DockerHostResolver.next_available
 
@@ -363,7 +361,38 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   """
   @spec deploy(term, term, Map) :: {:reply, :in_progress, :workflow_completed, Map}
   def deploy(_event, _from, state_data) do  
-    Logger.debug("#{state_data[:workflow_fsm_prefix]} Requesting deploy...")
+    call_deployer(state_data)
+  end
+
+  @doc """
+  :gen_fsm callback - http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-3 for the state :deploy_oa
+  This callback will take the following action(s):
+    * Resolve a messaging_exchange to send a Deployer message
+      * Fail the workflow if the resolution fails
+    * Publish a Deployer request
+    * Transition to :workflow_completed
+
+  ## Options
+
+  The `current_state` option contains the last state of the :gen_fsm server
+
+  The `from` option contains the caller of the state transition
+
+  The `state_data` option contains the default state data of the :gen_fsm server
+
+  ## Return Values
+  
+  {:reply, :in_progress, :workflow_completed, state_data}
+  """
+  @spec deploy_oa(term, term, Map) :: {:reply, :in_progress, :workflow_completed, Map}
+  def deploy_oa(_event, _from, state_data) do  
+    call_deployer(state_data)
+  end
+
+  @spec call_deployer(Map) :: {:reply, :in_progress, :workflow_completed, Map}
+  defp call_deployer(state_data) do
+    type = Workflow.get_info(state_data[:workflow])[:current_step]
+    Logger.debug("#{state_data[:workflow_fsm_prefix]} Requesting #{inspect type}...")
 
     workflow_info = Workflow.get_info(state_data[:workflow])
     if workflow_info[:etcd_token] == nil || String.length(workflow_info[:etcd_token]) == 0 do
@@ -395,7 +424,11 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
           Logger.debug("#{state_data[:workflow_fsm_prefix]} Saving workflow...")
           Workflow.save(state_data[:workflow])
 
-          DeployerPublisher.deploy(state_data[:delivery_tag], messaging_exchange_id, OrchestratorRequest.to_payload(request))       
+          if type == :deploy do
+            DeployerPublisher.deploy(state_data[:delivery_tag], messaging_exchange_id, OrchestratorRequest.to_payload(request))       
+          else
+            DeployerPublisher.deploy_oa(state_data[:delivery_tag], messaging_exchange_id, OrchestratorRequest.to_payload(request))       
+          end
       end
     end
 
