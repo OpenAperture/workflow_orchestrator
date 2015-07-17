@@ -44,7 +44,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Mixfile do
       {:openaperture_fleet, git: "https://github.com/OpenAperture/fleet.git", ref: "2e63b7889c76f4d3b749146f3ebceb01702cf012", override: true},
       {:openaperture_workflow_orchestrator_api, git: "https://github.com/OpenAperture/workflow_orchestrator_api.git", ref: "6a30773415161146aeb0e07c6b2f456d1e0d8d48", override: true},
       
-      {:timex_extensions, git: "https://github.com/OpenAperture/timex_extensions.git", ref: "ab9d8820625171afbb80ccba1aa48feeb43dd790", override: true},
+      {:timex_extensions, git: "https://github.com/OpenAperture/timex_extensions.git", ref: "1665c1df90397702daf492c6f940e644085016cd", override: true},
 
       {:timex, "~> 0.12.9"},
       {:fleet_api, "~> 0.0.6"},

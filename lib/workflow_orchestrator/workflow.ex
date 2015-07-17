@@ -169,7 +169,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
       resolved_workflow_info = workflow_info
 
       step_time = resolved_workflow_info[:step_time]
-      timestamp = TimexExtensions.get_elapased_timestamp(step_time)
+      timestamp = TimexExtensions.get_elapsed_timestamp(step_time)
       if (step_time != nil) do
         resolved_workflow_info = Map.delete(workflow_info, :step_time)
       end
@@ -187,7 +187,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
     if next_workflow_step == nil do
       resolved_workflow_info = Map.put(resolved_workflow_info, :workflow_completed, true)
 
-      timestamp = TimexExtensions.get_elapased_timestamp(resolved_workflow_info[:workflow_start_time])
+      timestamp = TimexExtensions.get_elapsed_timestamp(resolved_workflow_info[:workflow_start_time])
       resolved_workflow_info = Map.put(resolved_workflow_info, :workflow_duration, timestamp)
       resolved_workflow_info = send_success_notification(resolved_workflow_info, "Workflow completed in #{timestamp}")
 
@@ -377,8 +377,8 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
         source_commit_hash: workflow_info[:source_commit_hash],
         milestones: workflow_info[:milestones],
         current_step: "#{workflow_info[:current_step]}",
-        elapsed_step_time: TimexExtensions.get_elapased_timestamp(workflow_info[:step_time]),
-        elapsed_workflow_time: TimexExtensions.get_elapased_timestamp(workflow_info[:workflow_start_time]),
+        elapsed_step_time: TimexExtensions.get_elapsed_timestamp(workflow_info[:step_time]),
+        elapsed_workflow_time: TimexExtensions.get_elapsed_timestamp(workflow_info[:workflow_start_time]),
         workflow_duration: workflow_info[:workflow_duration],
         workflow_step_durations: workflow_info[:workflow_step_durations],
         workflow_error: workflow_error,
@@ -487,7 +487,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
     workflow_info = Map.merge(workflow_info, %{workflow_completed: true})
     workflow_info = Map.merge(workflow_info, %{workflow_error: true})
 
-    timestamp = TimexExtensions.get_elapased_timestamp(workflow_info[:workflow_start_time])
+    timestamp = TimexExtensions.get_elapsed_timestamp(workflow_info[:workflow_start_time])
     workflow_info = Map.merge(workflow_info, %{workflow_duration: timestamp})
     workflow_info = send_failure_notification(workflow_info, "Workflow has failed in #{timestamp}")
 
@@ -496,7 +496,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
       workflow_step_durations = %{}
     end
 
-    timestamp = TimexExtensions.get_elapased_timestamp(workflow_info[:step_time])    
+    timestamp = TimexExtensions.get_elapsed_timestamp(workflow_info[:step_time])    
     workflow_step_durations = Map.put(workflow_step_durations, to_string(workflow_info[:current_step]), timestamp)
     workflow_info = Map.put(workflow_info, :workflow_step_durations, workflow_step_durations)
     workflow_info = send_success_notification(workflow_info, "Completed Workflow Milestone:  #{inspect workflow_info[:current_step]}, in #{timestamp}")    

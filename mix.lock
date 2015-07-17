@@ -24,5 +24,5 @@
   "rabbit_common": {:hex, :rabbit_common, "3.5.0"},
   "ssl_verify_hostname": {:hex, :ssl_verify_hostname, "1.0.4"},
   "timex": {:hex, :timex, "0.12.9"},
-  "timex_extensions": {:git, "https://github.com/OpenAperture/timex_extensions.git", "ab9d8820625171afbb80ccba1aa48feeb43dd790", [ref: "ab9d8820625171afbb80ccba1aa48feeb43dd790"]},
+  "timex_extensions": {:git, "https://github.com/OpenAperture/timex_extensions.git", "1665c1df90397702daf492c6f940e644085016cd", [ref: "1665c1df90397702daf492c6f940e644085016cd"]},
   "uuid": {:hex, :uuid, "0.1.5"}}
