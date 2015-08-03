@@ -16,4 +16,7 @@ use Mix.Config
 #       metadata: [:user_id]
 
 config :autostart,
-	register_queues: true
+  register_queues: true
+
+config :openaperture_workflow_orchestrator,
+  queued_builds_check_delay: "15000"

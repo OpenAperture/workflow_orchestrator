@@ -1,7 +1,7 @@
 #
 # == workflow_fsm.ex
 #
-# This module contains the gen_fsm for Workflow Orchestration.  Most executions 
+# This module contains the gen_fsm for Workflow Orchestration.  Most executions
 # through this FSM will follow one of the following path(s):
 #
 #   * Workflow is complete
@@ -18,6 +18,7 @@
 #
 require Logger
 require Timex.Date
+require Timex.DateFormat
 
 defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
@@ -39,6 +40,9 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   alias OpenAperture.WorkflowOrchestratorApi.Request, as: OrchestratorRequest
 
+  alias OpenAperture.ManagerApi
+  alias ManagerApi.Workflow, as: WorkflowAPI
+
   @doc """
   Method to start a WorkflowFSM
 
@@ -49,16 +53,16 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   The `delivery_tag` options defines the identifier of the request message to which this FSM is associated
 
   ## Return Values
-  
+
   {:ok, WorkflowFSM} | {:error, reason}
   """
   @spec start_link(Map, String.t()) :: {:ok, pid} | {:error, String.t()}
-	def start_link(payload, delivery_tag) do
+  def start_link(payload, delivery_tag) do
     case Workflow.create_from_payload(payload) do
       {:error, reason} -> {:error, reason}
       workflow -> :gen_fsm.start_link(__MODULE__, %{workflow: workflow, delivery_tag: delivery_tag}, [])
     end
-	end
+  end
 
   @doc """
   Method to execute a (rescursive) run of the WorkflowFSM
@@ -68,7 +72,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   The `workflowfsm` option defines the PID of the FSM
 
   ## Return Values
-  
+
   :completed
   """
   @spec execute(pid) :: :completed
@@ -87,15 +91,15 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   The `state_data` option contains the default state data of the :gen_fsm server
 
   ## Return Values
-  
+
   {:ok, :workflow_starting, state_data}
   """
   @spec init(pid) :: {:ok, :workflow_starting, Map}
-	def init(state_data) do
+  def init(state_data) do
     state_data = Map.put(state_data, :workflow_fsm_id, "#{UUID.uuid1()}")
     state_data = Map.put(state_data, :workflow_fsm_prefix, "[WorkflowFSM][#{state_data[:workflow_fsm_id]}][Workflow][#{Workflow.get_id(state_data[:workflow])}]")
     {:ok, :workflow_starting, state_data}
-	end
+  end
 
   @doc """
   :gen_fsm callback - http://www.erlang.org/doc/man/gen_fsm.html#Module:terminate-3
@@ -109,14 +113,14 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   The `state_data` option contains the default state data of the :gen_fsm server
 
   ## Return Values
-  
+
   :ok
   """
   @spec terminate(term, term, Map) :: :ok
-	def terminate(_reason, _current_state, state_data) do
-		Logger.debug("#{state_data[:workflow_fsm_prefix]} Workflow Orchestration has finished normally")
-		:ok
-	end
+  def terminate(_reason, _current_state, state_data) do
+    Logger.debug("#{state_data[:workflow_fsm_prefix]} Workflow Orchestration has finished normally")
+    :ok
+  end
 
   @doc """
   :gen_fsm callback - http://www.erlang.org/doc/man/gen_fsm.html#Module:code_change-4
@@ -132,7 +136,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   The `opts` option contains additional extra options
 
   ## Return Values
-  
+
   {:ok, term, Map}
   """
   @spec code_change(term, term, Map, term) :: {:ok, term, Map}
@@ -152,13 +156,13 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   The `state_data` option contains the default state data of the :gen_fsm server
 
   ## Return Values
-  
+
   {:next_state,term,Map}
   """
   @spec handle_info(term, term, Map) :: {:next_state,term,Map}
   def handle_info(_info, current_state, state_data) do
     {:next_state,current_state,state_data}
-  end    
+  end
 
   @doc """
   :gen_fsm callback - http://www.erlang.org/doc/man/gen_fsm.html#Module:handle_event-3
@@ -172,13 +176,13 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   The `state_data` option contains the default state data of the :gen_fsm server
 
   ## Return Values
-  
+
   {:next_state,term,Map}
   """
   @spec handle_event(term, term, Map) :: {:next_state,term,Map}
   def handle_event(_event, current_state, state_data) do
     {:next_state,current_state,state_data}
-  end   
+  end
 
   @doc """
   :gen_fsm callback - http://www.erlang.org/doc/man/gen_fsm.html#Module:handle_sync_event-4
@@ -194,13 +198,13 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   The `state_data` option contains the default state data of the :gen_fsm server
 
   ## Return Values
-  
+
   {:next_state,term,Map}
   """
   @spec handle_sync_event(term, term, term, Map) :: {:next_state,term,Map}
   def handle_sync_event(_event, _from, current_state, state_data) do
     {:next_state,current_state,state_data}
-  end 
+  end
 
   @doc """
   :gen_fsm callback - http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-3 for the state :workflow_starting
@@ -218,7 +222,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   The `state_data` option contains the default state data of the :gen_fsm server
 
   ## Return Values
-  
+
   {:reply, :in_progress, next_milestone, state_data}
   """
   @spec workflow_starting(term, term, Map) :: {:reply, :in_progress, term, Map}
@@ -229,7 +233,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
     Workflow.save(state_data[:workflow])
 
     case Workflow.complete?(state_data[:workflow]) do
-      true -> 
+      true ->
         if Workflow.failed?(state_data[:workflow]) do
           Workflow.workflow_failed(state_data[:workflow], "Milestone worker has reported a failure")
         else
@@ -237,7 +241,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
         end
 
         {:reply, :in_progress, :workflow_completed, state_data}
-      false -> 
+      false ->
         Logger.debug("#{state_data[:workflow_fsm_prefix]} Workflow has not finished, resolving next milestone...")
         {:reply, :in_progress, Workflow.resolve_next_milestone(state_data[:workflow]), state_data}
     end
@@ -257,7 +261,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   The `state_data` option contains the default state data of the :gen_fsm server
 
   ## Return Values
-  
+
   {:stop, :normal, {:completed, state_data[:workflow]}, state_data}
   """
   @spec workflow_completed(term, term, Map) :: {:stop, :normal, {:completed, pid}, Map}
@@ -289,35 +293,76 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   The `state_data` option contains the default state data of the :gen_fsm server
 
   ## Return Values
-  
+
   {:reply, :in_progress, :workflow_completed, state_data}
   """
   @spec build(term, term, Map) :: {:reply, :in_progress, :workflow_completed, Map}
-  def build(_event, _from, state_data) do  
-    call_builder(state_data)
+  def build(_event, _from, state_data) do
+    deployment_repo = state_data[:workflow][:deployment_repo]
+
+    if any_builds_queued?(deployment_repo) do
+      process_queued_builds(deployment_repo, state_data)
+    else
+      call_builder(state_data)
+    end
+  end
+
+  defp any_builds_queued?(deployment_repo) do
+    query     = %{deployment_repo: deployment_repo, workflow_completed: false}
+    workflows = ManagerApi.get_api |> WorkflowAPI.list!(query)
+
+    if length(workflows) > 0 do
+      workflow_in_progress = workflows |> Enum.find fn(wf) ->
+        wf.current_step == "build"
+      end
+
+      if workflow_in_progress do
+        {true, :build}
+      else
+        earliest_pending = workflows |> Enum.min_by fn(wf) ->
+          wf.inserted_at |> Timex.DateFormat.parse("{RFC1123}")
+        end
+        {true, :pending, earliest_pending.workflow_id}
+      end
+    end
+  end
+
+  defp process_queued_builds(deployment_repo, state_data) do
+    case any_builds_queued?(deployment_repo) do
+      {true, :build} ->
+        :timer.sleep Configuration.get_queue_build_delay
+        process_queued_builds(deployment_repo, state_data)
+      {true, :pending, workflow_id} ->
+        %{state_data | workflow: %{workflow_id: workflow_id}} |> call_builder
+        process_queued_builds(deployment_repo, state_data)
+      _other ->
+        {:reply, :in_progress, :workflow_completed, state_data}
+    end
   end
 
   @spec config(term, term, Map) :: {:reply, :in_progress, :workflow_completed, Map}
-  def config(_event, _from, state_data) do  
+  def config(_event, _from, state_data) do
     call_builder(state_data)
   end
 
   def call_builder(state_data) do
     type = Workflow.get_info(state_data[:workflow])[:current_step]
-    Logger.debug("#{state_data[:workflow_fsm_prefix]} Requesting #{type}...")   
+    Logger.debug("#{state_data[:workflow_fsm_prefix]} Requesting #{type}...")
     {messaging_exchange_id, docker_build_etcd_cluster} = DockerHostResolver.next_available
 
     workflow_info = Workflow.get_info(state_data[:workflow])
-    if workflow_info[:build_messaging_exchange_id] != nil do
+
+    if workflow_info[:build_messaging_exchange_id] do
       messaging_exchange_id = workflow_info[:build_messaging_exchange_id]
       Workflow.add_success_notification(state_data[:workflow], "The Workflow request has overriden the default build messaging_exchange_id to #{messaging_exchange_id}")
-    end    
+    end
+
     cond do
       docker_build_etcd_cluster == nil ->
         Workflow.workflow_failed(state_data[:workflow], "Unable to request #{type} - no build clusters are available!")
       !OpenAperture.ManagerApi.MessagingExchange.exchange_has_modules_of_type?(messaging_exchange_id, "builder") ->
         Workflow.workflow_failed(state_data[:workflow], "Unable to request #{type} - no Builders are currently accessible in exchange #{messaging_exchange_id}!")
-      true ->        
+      true ->
         Workflow.add_success_notification(state_data[:workflow], "Dispatching a #{type} request to exchange #{messaging_exchange_id}, docker build cluster #{docker_build_etcd_cluster["etcd_token"]}...")
 
         request = OrchestratorRequest.from_payload(Workflow.get_info(state_data[:workflow]))
@@ -356,11 +401,11 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   The `state_data` option contains the default state data of the :gen_fsm server
 
   ## Return Values
-  
+
   {:reply, :in_progress, :workflow_completed, state_data}
   """
   @spec deploy(term, term, Map) :: {:reply, :in_progress, :workflow_completed, Map}
-  def deploy(_event, _from, state_data) do  
+  def deploy(_event, _from, state_data) do
     call_deployer(state_data)
   end
 
@@ -381,11 +426,11 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   The `state_data` option contains the default state data of the :gen_fsm server
 
   ## Return Values
-  
+
   {:reply, :in_progress, :workflow_completed, state_data}
   """
   @spec deploy_oa(term, term, Map) :: {:reply, :in_progress, :workflow_completed, Map}
-  def deploy_oa(_event, _from, state_data) do  
+  def deploy_oa(_event, _from, state_data) do
     call_deployer(state_data)
   end
 
@@ -425,9 +470,9 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
           Workflow.save(state_data[:workflow])
 
           if type == :deploy do
-            DeployerPublisher.deploy(state_data[:delivery_tag], messaging_exchange_id, OrchestratorRequest.to_payload(request))       
+            DeployerPublisher.deploy(state_data[:delivery_tag], messaging_exchange_id, OrchestratorRequest.to_payload(request))
           else
-            DeployerPublisher.deploy_oa(state_data[:delivery_tag], messaging_exchange_id, OrchestratorRequest.to_payload(request))       
+            DeployerPublisher.deploy_oa(state_data[:delivery_tag], messaging_exchange_id, OrchestratorRequest.to_payload(request))
           end
       end
     end
