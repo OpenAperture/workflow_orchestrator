@@ -16,20 +16,21 @@ use Mix.Config
 #       metadata: [:user_id]
 
 config :autostart,
-	register_queues: false
+  register_queues: false
 
-config :openaperture_manager_api, 
-	manager_url: "https://openaperture-mgr.host.co",
-	oauth_login_url: "https://auth.host.co",
-	oauth_client_id: "id",
-	oauth_client_secret: "secret"
+config :openaperture_manager_api,
+  manager_url: "https://openaperture-mgr.host.co",
+  oauth_login_url: "https://auth.host.co",
+  oauth_client_id: "id",
+  oauth_client_secret: "secret"
 
-config :openaperture_workflow_orchestrator, 
-	exchange_id: "1",
-	broker_id: "1"
+config :openaperture_workflow_orchestrator,
+  exchange_id: "1",
+  broker_id: "1",
+  queued_builds_check_delay: "3"
 
 config :openaperture_overseer_api,
-	module_type: :test,
-	autostart: false,	
-	exchange_id: "1",
-	broker_id: "1"
+  module_type: :test,
+  autostart: false,
+  exchange_id: "1",
+  broker_id: "1"
