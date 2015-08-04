@@ -307,6 +307,8 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
     end
   end
 
+  @doc false
+  @spec any_builds_queued?(String.t) :: {Boolean, Atom} | {Boolean, Atom, String.t} | nil
   defp any_builds_queued?(deployment_repo) do
     query     = %{deployment_repo: deployment_repo, workflow_completed: false}
     workflows = ManagerApi.get_api |> WorkflowAPI.list!(query)
@@ -327,6 +329,8 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
     end
   end
 
+  @doc false
+  @spec process_queued_builds(String.t, Map) :: {Atom, Atom, Atom, Map}
   defp process_queued_builds(deployment_repo, state_data) do
     case any_builds_queued?(deployment_repo) do
       {true, :build} ->
