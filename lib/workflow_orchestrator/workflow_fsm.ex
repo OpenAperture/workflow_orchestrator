@@ -313,16 +313,16 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
     if length(workflows) > 0 do
       workflow_in_progress = workflows |> Enum.find fn(wf) ->
-        wf.current_step == "build"
+        wf["current_step"] == "build"
       end
 
       if workflow_in_progress do
         {true, :build}
       else
         earliest_pending = workflows |> Enum.min_by fn(wf) ->
-          wf.inserted_at |> Timex.DateFormat.parse("{RFC1123}")
+          wf["inserted_at"] |> Timex.DateFormat.parse("{RFC1123}")
         end
-        {true, :pending, earliest_pending.workflow_id}
+        {true, :pending, earliest_pending["id"]}
       end
     end
   end
@@ -332,8 +332,8 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
       {true, :build} ->
         :timer.sleep Configuration.get_queue_build_delay
         process_queued_builds(deployment_repo, state_data)
-      {true, :pending, workflow_id} ->
-        %{state_data | workflow: %{workflow_id: workflow_id}} |> call_builder
+      {true, :pending, id} ->
+        %{state_data | workflow: %{id: id}} |> call_builder
         process_queued_builds(deployment_repo, state_data)
       _other ->
         {:reply, :in_progress, :workflow_completed, state_data}

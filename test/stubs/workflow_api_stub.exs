@@ -2,27 +2,26 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowAPIStub do
   @lists %{
     pending: [
       %{
-        workflow_id: 1, development_repo: "myCloud/myApp",
-        workflow_completed: false, current_step: "configure",
-        inserted_at: "Thu, 30 Jul 2015 07:33:44 UTC"
-
+        "id" => "1", "development_repo" => "myCloud/myApp",
+        "workflow_completed" => false, "current_step" => "configure",
+        "inserted_at" => "Thu, 30 Jul 2015 07:33:44 UTC"
       },
       %{
-        workflow_id: 2, development_repo: "myCloud/myApp",
-        workflow_completed: false, current_step: "configure",
-        inserted_at: "Thu, 30 Jul 2015 07:33:45 UTC"
+        "id" => "2", "development_repo" => "myCloud/myApp",
+        "workflow_completed" => false, "current_step" => "configure",
+        "inserted_at" => "Thu, 30 Jul 2015 07:33:45 UTC"
       }
     ],
     build: [
       %{
-        workflow_id: 1, development_repo: "myCloud/myApp",
-        workflow_completed: false, current_step: "configure",
-        inserted_at: "Thu, 30 Jul 2015 07:33:44 UTC"
+        "id" => "1", "development_repo" => "myCloud/myApp",
+        "workflow_completed" => false, "current_step" => "configure",
+        "inserted_at" => "Thu, 30 Jul 2015 07:33:44 UTC"
       },
       %{
-        workflow_id: 2, development_repo: "myCloud/myApp",
-        workflow_completed: false, current_step: "build",
-        inserted_at: "Thu, 31 Jul 2015 07:33:44 UTC"
+        "id" => "2", "development_repo" => "myCloud/myApp",
+        "workflow_completed" => false, "current_step" => "build",
+        "inserted_at" => "Thu, 30 Jul 2015 07:13:45 UTC"
       }
     ]
   }
@@ -40,11 +39,11 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowAPIStub do
 
     if workflows != [] do
       in_build = workflows |> Enum.find fn(wf) ->
-        wf.current_step == "build"
+        wf["current_step"] == "build"
       end
 
       rest = if in_build do
-        workflows |> Enum.reject &(&1.current_step == "build")
+        workflows |> Enum.reject &(&1["current_step"] == "build")
       else
         tl(workflows)
       end
@@ -55,4 +54,3 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowAPIStub do
     :ok
   end
 end
-

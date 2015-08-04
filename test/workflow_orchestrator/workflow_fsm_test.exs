@@ -12,7 +12,6 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   alias OpenAperture.WorkflowOrchestrator.Deployer.Publisher, as: DeployerPublisher
   alias OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolver
   alias OpenAperture.WorkflowOrchestrator.WorkflowAPIStub
-
   # ============================
   # start_link tests
 
@@ -173,7 +172,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
       list
     end)
 
-    state_data = %{workflow_fsm_prefix: "[]", workflow: %{deployment_repo: "myCloud/myApp"}}
+    state_data = %{workflow_fsm_prefix: "[]", workflow: %{deployment_repo: "myCloud/myApp_docker"}}
     assert WorkflowFSM.build(:workflow_completed, nil, state_data) == {:reply, :in_progress, :workflow_completed, state_data}
   after
     :meck.unload(Workflow)
@@ -210,7 +209,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
       list
     end)
 
-    state_data = %{workflow_fsm_prefix: "[]", workflow: %{deployment_repo: "myCloud/myApp"}}
+    state_data = %{workflow_fsm_prefix: "[]", workflow: %{deployment_repo: "myCloud/myApp_docker"}}
     assert WorkflowFSM.build(:workflow_completed, nil, state_data) == {:reply, :in_progress, :workflow_completed, state_data}
     assert Agent.get(pid, &(&1))
   after
@@ -237,7 +236,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
       list
     end)
 
-    state_data = %{workflow_fsm_prefix: "[]", workflow: %{deployment_repo: "myCloud/myApp"}, delivery_tag: "#{UUID.uuid1()}"}
+    state_data = %{workflow_fsm_prefix: "[]", workflow: %{deployment_repo: "myCloud/myApp_docker"}, delivery_tag: "#{UUID.uuid1()}"}
     :meck.new(BuilderPublisher, [:passthrough])
     :meck.expect(BuilderPublisher, :build, fn delivery_tag, messaging_exchange_id, payload ->
       assert delivery_tag == state_data[:delivery_tag]
@@ -282,7 +281,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
       list
     end)
 
-    state_data = %{workflow_fsm_prefix: "[]", workflow: %{deployment_repo: "myCloud/myApp"}, delivery_tag: "#{UUID.uuid1()}"}
+    state_data = %{workflow_fsm_prefix: "[]", workflow: %{deployment_repo: "myCloud/myApp_docker"}, delivery_tag: "#{UUID.uuid1()}"}
     :meck.new(BuilderPublisher, [:passthrough])
     :meck.expect(BuilderPublisher, :build, fn delivery_tag, messaging_exchange_id, payload ->
       assert delivery_tag == state_data[:delivery_tag]
@@ -314,7 +313,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
     :meck.new(Workflow, [:passthrough])
     :meck.expect(Workflow, :create_from_payload, fn(_) ->
       %{
-        deployment_repo: "myCloud/myApp",
+        deployment_repo: "myCloud/myApp_docker",
         workflow_id: 42
       }
     end)
@@ -357,8 +356,6 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
       list
     end)
 
-
-
     payload = %{}
 
     {:ok, workflow} = WorkflowFSM.start_link(payload, orig_delivery_tag)
@@ -375,7 +372,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   test "no queued builds" do
     :meck.new(Workflow, [:passthrough])
     :meck.expect(Workflow, :create_from_payload, fn _ ->
-      %{deployment_repo: "Cloud/MyApp_docker"}
+      %{deployment_repo: "myCloud/MyApp_docker"}
     end)
     :meck.expect(Workflow, :get_id, fn _ -> "123abc" end)
     :meck.expect(Workflow, :save, fn _ -> :ok end)
@@ -416,7 +413,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
     :meck.new(Workflow, [:passthrough])
     :meck.expect(Workflow, :create_from_payload, fn(_) ->
       %{
-        deployment_repo: "myCloud/myApp",
+        deployment_repo: "myCloud/myApp_docker",
         workflow_id: 42
       }
     end)
@@ -464,7 +461,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
     :meck.new(Workflow, [:passthrough])
     :meck.expect(Workflow, :create_from_payload, fn(_) ->
       %{
-        deployment_repo: "myCloud/myApp",
+        deployment_repo: "myCloud/myApp_docker",
         workflow_id: 42
       }
     end)
@@ -608,7 +605,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
       list
     end)
 
-    state_data = %{workflow_fsm_prefix: "[]", workflow: %{deployment_repo: "myCloud/myApp"}, delivery_tag: "#{UUID.uuid1()}"}
+    state_data = %{workflow_fsm_prefix: "[]", workflow: %{deployment_repo: "myCloud/myApp_docker"}, delivery_tag: "#{UUID.uuid1()}"}
     :meck.new(DeployerPublisher, [:passthrough])
     :meck.expect(DeployerPublisher, :deploy, fn delivery_tag, messaging_exchange_id, payload ->
       assert delivery_tag == state_data[:delivery_tag]
