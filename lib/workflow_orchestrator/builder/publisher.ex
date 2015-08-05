@@ -69,7 +69,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.Publisher do
   """
   @spec handle_cast({:build, String.t(), String.t(), Map}, Map) :: {:noreply, Map}
   def handle_cast({:build, _delivery_tag, messaging_exchange_id, payload}, state) do
-    if !OpenAperture.ManagerApi.MessagingExchange.exchange_has_modules_of_type?(messaging_exchange_id, "build") do
+    if !OpenAperture.ManagerApi.MessagingExchange.exchange_has_modules_of_type?(messaging_exchange_id, "builder") do
       {:error, "No builder modules were found on exchange #{messaging_exchange_id}"}
     else
       build_queue = QueueBuilder.build(ManagerApi.get_api, "builder", messaging_exchange_id)
