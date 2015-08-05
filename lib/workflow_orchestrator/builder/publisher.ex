@@ -69,21 +69,25 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.Publisher do
   """
   @spec handle_cast({:build, String.t(), String.t(), Map}, Map) :: {:noreply, Map}
   def handle_cast({:build, _delivery_tag, messaging_exchange_id, payload}, state) do
-    build_queue = QueueBuilder.build(ManagerApi.get_api, "builder", messaging_exchange_id)
+    if !OpenAperture.ManagerApi.MessagingExchange.exchange_has_modules_of_type?(messaging_exchange_id, "builder") do
+      {:error, "No builder modules were found on exchange #{messaging_exchange_id}"}
+    else
+      build_queue = QueueBuilder.build(ManagerApi.get_api, "builder", messaging_exchange_id)
 
-    connection_options = ConnectionOptionsResolver.resolve(
-      ManagerApi.get_api, 
-      Configuration.get_current_broker_id,
-      Configuration.get_current_exchange_id,
-      messaging_exchange_id
-    )
+      connection_options = ConnectionOptionsResolver.resolve(
+        ManagerApi.get_api, 
+        Configuration.get_current_broker_id,
+        Configuration.get_current_exchange_id,
+        messaging_exchange_id
+      )
 
-		case publish(connection_options, build_queue, payload) do
-			:ok -> 
-        Logger.debug("Successfully published Builder message")
-			{:error, reason} -> 
-        Logger.error("Failed to publish Builder message:  #{inspect reason}")
-		end
-    {:noreply, state}
+  		case publish(connection_options, build_queue, payload) do
+  			:ok -> 
+          Logger.debug("Successfully published Builder message")
+  			{:error, reason} -> 
+          Logger.error("Failed to publish Builder message:  #{inspect reason}")
+  		end
+      {:noreply, state}
+    end
   end
 end

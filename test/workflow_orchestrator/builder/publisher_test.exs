@@ -50,6 +50,9 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.PublisherTest do
       :meck.new(Dispatcher, [:passthrough])
       :meck.expect(Dispatcher, :acknowledge, fn _ -> :ok end)
 
+      :meck.new(OpenAperture.ManagerApi.MessagingExchange, [:passthrough])
+      :meck.expect(OpenAperture.ManagerApi.MessagingExchange, :exchange_has_modules_of_type?, fn _, _ -> true end)
+
       state = %{
       }
 
@@ -64,6 +67,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.PublisherTest do
     :meck.unload(Dispatcher)
     :meck.unload(QueueBuilder)
     :meck.unload(ConnectionOptionsResolver)
+    :meck.unload(OpenAperture.ManagerApi.MessagingExchange)
   end
 
   test "handle_cast({:build}) - failure" do
@@ -83,6 +87,10 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.PublisherTest do
       :meck.new(Dispatcher, [:passthrough])
       :meck.expect(Dispatcher, :reject, fn _ -> :ok end)
 
+      :meck.new(OpenAperture.ManagerApi.MessagingExchange, [:passthrough])
+      :meck.expect(OpenAperture.ManagerApi.MessagingExchange, :exchange_has_modules_of_type?, fn _, _ -> true end)
+
+
       state = %{
       }
 
@@ -97,5 +105,17 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.PublisherTest do
     :meck.unload(Dispatcher)
     :meck.unload(QueueBuilder)
     :meck.unload(ConnectionOptionsResolver)
+    :meck.unload(OpenAperture.ManagerApi.MessagingExchange)
+  end  
+
+  test "handle_cast({:build}) - failure - no build modules" do
+    use_cassette "load_connection_options", custom: true do
+      :meck.new(OpenAperture.ManagerApi.MessagingExchange, [:passthrough])
+      :meck.expect(OpenAperture.ManagerApi.MessagingExchange, :exchange_has_modules_of_type?, fn _, _ -> false end)
+
+      assert BuilderPublisher.handle_cast({:build, "delivery_tag", "messaging_exchange_id", %{}}, %{}) == {:error, "No builder modules were found on exchange messaging_exchange_id"}
+    end
+  after
+    :meck.unload(OpenAperture.ManagerApi.MessagingExchange)
   end  
 end
