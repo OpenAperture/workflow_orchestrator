@@ -548,11 +548,11 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
         workflow_info[:source_repo] != nil && workflow_info[:source_repo_git_ref] != nil ->
           "Source Commit:\n#{workflow_info[:source_repo]}/commit/#{workflow_info[:source_repo_git_ref]}"
         workflow_info[:source_repo] != nil ->
-          "Source Repo: #{workflow_info[:source_repo]}"
+          "Source Repo:\n#{workflow_info[:source_repo]}"
         true ->
-          "Deployment Repo: https://github.com/#{workflow_info[:deployment_repo]}"
+          "Deployment Repo:\nhttps://github.com/#{workflow_info[:deployment_repo]}"
       end
-      body = body <> "\nFor more information, please see:  #{Configuration.get_ui_url}/index.html#/oa/workflows/workflows/#{workflow_info[:id]}"
+      body = body <> "\n\nFor more information, please see:\n#{Configuration.get_ui_url}/index.html#/oa/workflows/workflows/#{workflow_info[:id]}"
 
       workflow_info = send_success_notification(workflow_info, "Sending :on_workflow_completed email notification to the following recipient(s):  #{inspect recipients}")
       Agent.update(workflow, fn _ -> workflow_info end)
