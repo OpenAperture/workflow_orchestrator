@@ -545,9 +545,9 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
       end
 
       body = cond do
-        workflow_info[:source_repo] != nil && workflow_info[:source_repo_git_ref] != nil ->
+        !empty?(workflow_info[:source_repo]) && !empty?(workflow_info[:source_repo_git_ref]) ->
           "Source Commit:\n#{workflow_info[:source_repo]}/commit/#{workflow_info[:source_repo_git_ref]}"
-        workflow_info[:source_repo] != nil ->
+        !empty?(workflow_info[:source_repo]) ->
           "Source Repo:\n#{workflow_info[:source_repo]}"
         true ->
           "Deployment Repo:\nhttps://github.com/#{workflow_info[:deployment_repo]}"
@@ -561,4 +561,8 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
       NotificationsPublisher.email_notification(subject,body,recipients)
     end
   end
+
+  defp empty?(nil), do: true
+  defp empty?(""), do: true
+  defp empty?(_), do: false
 end
