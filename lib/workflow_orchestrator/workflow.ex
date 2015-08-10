@@ -546,9 +546,9 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
       body = cond do
         workflow_info[:source_repo] != nil && workflow_info[:source_repo_git_ref] != nil ->
-          "Source Commit:\nhttps://github.com/#{workflow_info[:source_repo]}/commit/#{workflow_info[:source_repo_git_ref]}"
+          "Source Commit:\n#{workflow_info[:source_repo]}/commit/#{workflow_info[:source_repo_git_ref]}"
         workflow_info[:source_repo] != nil ->
-          "Source Repo: https://github.com/#{workflow_info[:source_repo]}"
+          "Source Repo: #{workflow_info[:source_repo]}"
         true ->
           "Deployment Repo: https://github.com/#{workflow_info[:deployment_repo]}"
       end
