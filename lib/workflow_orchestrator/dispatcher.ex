@@ -18,6 +18,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
   alias OpenAperture.WorkflowOrchestrator.MessageManager
 
   alias OpenAperture.ManagerApi
+  alias OpenAperture.ManagerApi.SystemEvent
 
   @moduledoc """
   This module contains the logic to dispatch WorkflowOrchestrator messsages to the appropriate GenServer(s) 
@@ -80,13 +81,49 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
         execute_orchestration(payload, delivery_tag) 
       catch
         :exit, code   -> 
-          Logger.error("Message #{delivery_tag} (workflow #{payload[:id]}) Exited with code #{inspect code}.  Payload:  #{inspect payload}")
+          error_msg = "Message #{delivery_tag} (workflow #{payload[:id]}) Exited with code #{inspect code}.  Payload:  #{inspect payload}"
+          Logger.error(error_msg)
+          event = %{
+          type: :unhandled_exception, 
+            severity: :error, 
+            data: %{
+              component: :workflow_orchestration,
+              exchange_id: Configuration.get_current_exchange_id,
+              hostname: System.get_env("HOSTNAME")
+            },
+            message: error_msg
+          }       
+          SystemEvent.create_system_event!(ManagerApi.get_api, event)            
           acknowledge(delivery_tag)
         :throw, value -> 
-          Logger.error("Message #{delivery_tag} (workflow #{payload[:id]}) Throw called with #{inspect value}.  Payload:  #{inspect payload}")
+          error_msg = "Message #{delivery_tag} (workflow #{payload[:id]}) Throw called with #{inspect value}.  Payload:  #{inspect payload}"
+          Logger.error(error_msg)
+          event = %{
+          type: :unhandled_exception, 
+            severity: :error, 
+            data: %{
+              component: :workflow_orchestration,
+              exchange_id: Configuration.get_current_exchange_id,
+              hostname: System.get_env("HOSTNAME")
+            },
+            message: error_msg
+          }       
+          SystemEvent.create_system_event!(ManagerApi.get_api, event)           
           acknowledge(delivery_tag)
         what, value   -> 
-          Logger.error("Message #{delivery_tag} (workflow #{payload[:id]}) Caught #{inspect what} with #{inspect value}.  Payload:  #{inspect payload}")
+          error_msg = "Message #{delivery_tag} (workflow #{payload[:id]}) Caught #{inspect what} with #{inspect value}.  Payload:  #{inspect payload}"
+          Logger.error(error_msg)
+          event = %{
+          type: :unhandled_exception, 
+            severity: :error, 
+            data: %{
+              component: :workflow_orchestration,
+              exchange_id: Configuration.get_current_exchange_id,
+              hostname: System.get_env("HOSTNAME")
+            },
+            message: error_msg
+          }       
+          SystemEvent.create_system_event!(ManagerApi.get_api, event)           
           acknowledge(delivery_tag)
       end
     end)
