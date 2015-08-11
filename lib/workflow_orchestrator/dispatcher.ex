@@ -84,7 +84,8 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
           error_msg = "Message #{delivery_tag} (workflow #{payload[:id]}) Exited with code #{inspect code}.  Payload:  #{inspect payload}"
           Logger.error(error_msg)
           event = %{
-          type: :unhandled_exception, 
+            unique: true,
+            type: :unhandled_exception, 
             severity: :error, 
             data: %{
               component: :workflow_orchestration,
@@ -99,7 +100,8 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
           error_msg = "Message #{delivery_tag} (workflow #{payload[:id]}) Throw called with #{inspect value}.  Payload:  #{inspect payload}"
           Logger.error(error_msg)
           event = %{
-          type: :unhandled_exception, 
+            unique: true,
+            type: :unhandled_exception, 
             severity: :error, 
             data: %{
               component: :workflow_orchestration,
@@ -114,7 +116,8 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
           error_msg = "Message #{delivery_tag} (workflow #{payload[:id]}) Caught #{inspect what} with #{inspect value}.  Payload:  #{inspect payload}"
           Logger.error(error_msg)
           event = %{
-          type: :unhandled_exception, 
+            unique: true,
+            type: :unhandled_exception, 
             severity: :error, 
             data: %{
               component: :workflow_orchestration,
