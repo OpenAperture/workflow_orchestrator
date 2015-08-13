@@ -8,7 +8,7 @@ require Logger
 
 defmodule OpenAperture.WorkflowOrchestrator.MessageManager do
 
-  #alias OpenAperture.OverseerApi.Heartbeat
+  @logprefix "[MessageManager]"
 
   @moduledoc """
   This module contains the logic for associating message references with their subscription handlers
@@ -22,6 +22,7 @@ defmodule OpenAperture.WorkflowOrchestrator.MessageManager do
   """
   @spec start_link() :: {:ok, pid} | {:error, String.t()}	
   def start_link() do
+    Logger.debug("#{@logprefix} Starting...")      
     Agent.start_link(fn -> %{} end, name: __MODULE__)
   end
 
@@ -36,6 +37,7 @@ defmodule OpenAperture.WorkflowOrchestrator.MessageManager do
   """
   @spec track(Map) :: term
   def track(%{subscription_handler: subscription_handler, delivery_tag: delivery_tag} = _async_info) do
+    Logger.debug("#{@logprefix} Tracking message #{delivery_tag}...")    
     new_message = %{
       process: self(),
       subscription_handler: subscription_handler, 
@@ -43,18 +45,8 @@ defmodule OpenAperture.WorkflowOrchestrator.MessageManager do
       start_time: :calendar.universal_time
     }
 
-    messages = Agent.get(__MODULE__, fn messages -> messages end)
-    messages = Map.put(messages, delivery_tag, new_message)
-
-    # workload = Enum.reduce Map.keys(messages), [], fn(delivery_tag, workload) ->
-    #   workload ++ [%{
-    #     description: "Request:  #{delivery_tag}"
-    #   }]
-    # end
-    #Heartbeat.set_workload(workload)
-
-    Agent.update(__MODULE__, fn _ -> messages end)
-
+    Agent.update(__MODULE__, fn messages -> Map.put(messages, delivery_tag, new_message) end)
+    
     new_message
   end
 
@@ -71,18 +63,11 @@ defmodule OpenAperture.WorkflowOrchestrator.MessageManager do
   """
   @spec remove(String.t()) :: Map
   def remove(delivery_tag) do
-    messages = Agent.get(__MODULE__, fn messages -> messages end)
-    deleted_message = messages[delivery_tag]
-    messages = Map.delete(messages, delivery_tag)
-    
-    # workload = Enum.reduce Map.keys(messages), [], fn(delivery_tag, workload) ->
-    #   workload ++ [%{
-    #     description: "Request:  #{delivery_tag}"
-    #   }]
-    # end
-    #Heartbeat.set_workload(workload)
+    Logger.debug("#{@logprefix} Finished tracking message #{delivery_tag}...")
 
-    Agent.update(__MODULE__, fn _ -> messages end)
-    deleted_message
+    Agent.get_and_update(__MODULE__, fn messages ->
+      message = messages[delivery_tag]
+      {message, Map.delete(messages, delivery_tag)}
+    end)
   end
 end
