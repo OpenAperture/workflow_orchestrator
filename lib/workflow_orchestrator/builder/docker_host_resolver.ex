@@ -10,12 +10,12 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   @moduledoc """
   This module contains the logic to resolve a Docker build cluster
-  """  
+  """
 
   alias OpenAperture.WorkflowOrchestrator.Configuration
   alias OpenAperture.ManagerApi
   alias OpenAperture.ManagerApi.EtcdCluster
-  alias OpenAperture.ManagerApi.MessagingExchange  
+  alias OpenAperture.ManagerApi.MessagingExchange
 
   @doc """
   Specific start_link implementation (required by the supervisor)
@@ -26,7 +26,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}   
+  @spec start_link() :: {:ok, pid} | {:error, String.t}
   def start_link do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
@@ -38,7 +38,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   Returns a tuple containing {messaging_exchange_id, etcd_cluster}
   """
-  @spec next_available() :: {String.t(), Map}
+  @spec next_available() :: {String.t, map}
   def next_available() do
   	GenServer.call(__MODULE__, {:next_available})
   end
@@ -51,12 +51,12 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
   The `_from` option defines the tuple {from, ref}
 
   The `state` option represents the server's current state
-  
+
   ## Return Values
 
   {:reply, {messaging_exchange_id, machine}, resolved_state}
   """
-  @spec handle_call({:next_available}, term, Map) :: {:reply, {String.t(), Map}, Map}
+  @spec handle_call({:next_available}, term, map) :: {:reply, {String.t, map}, map}
   def handle_call({:next_available}, _from, state) do
     {docker_build_clusters, resolved_state} = get_build_clusters(state)
     {:reply, get_exchange_cluster(docker_build_clusters), resolved_state}
@@ -69,7 +69,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   Boolean
   """
-  @spec cache_stale?(Map) :: term
+  @spec cache_stale?(map) :: term
   def cache_stale?(state) do
     if state[:docker_build_clusters_retrieval_time] == nil do
       true
@@ -85,16 +85,16 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   ## Return Values
 
-  {List of {messaging_exchange_id, cluster}, state}
+  {list of {messaging_exchange_id, cluster}, state}
   """
-  @spec get_build_clusters(Map) :: {List, Map}
+  @spec get_build_clusters(map) :: {list, map}
   def get_build_clusters(state) do
     unless state[:docker_build_clusters] == nil || cache_stale?(state) do
       {state[:docker_build_clusters], state}
     else
       docker_build_clusters = case get_local_build_clusters do
         nil -> get_global_build_clusters
-        [] -> get_global_build_clusters        
+        [] -> get_global_build_clusters
         docker_build_clusters -> docker_build_clusters
       end
       state = Map.put(state, :docker_build_clusters, docker_build_clusters)
@@ -108,16 +108,16 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   ## Return Values
 
-  List of {messaging_exchange_id, cluster}
+  list of {messaging_exchange_id, cluster}
   """
-  @spec get_local_build_clusters :: List
+  @spec get_local_build_clusters :: list
   def get_local_build_clusters do
     #1.  Lookup any clusters that exist in the current exchange
     Logger.debug("Looking for build clusters in exchange #{Configuration.get_current_exchange_id}...")
     case MessagingExchange.exchange_clusters!(ManagerApi.get_api, Configuration.get_current_exchange_id, %{allow_docker_builds: true}) do
       nil -> nil
       [] -> nil
-      docker_build_clusters -> 
+      docker_build_clusters ->
         Enum.reduce docker_build_clusters, [], fn(cluster, exchange_clusters) ->
           exchange_clusters ++ [{cluster["messaging_exchange_id"], cluster}]
         end
@@ -129,20 +129,20 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   ## Return Values
 
-  List of {messaging_exchange_id, cluster}
+  ;ist of {messaging_exchange_id, cluster}
   """
-  @spec get_global_build_clusters :: List
+  @spec get_global_build_clusters :: list
   def get_global_build_clusters do
     #2.  If no clusters are availabe in the exchange, check globally for clusters
     Logger.debug("No build clusters are available in exchange #{Configuration.get_current_exchange_id}, checking globally...")
     case EtcdCluster.list!(ManagerApi.get_api, %{allow_docker_builds: true}) do
       nil -> nil
       [] -> nil
-      docker_build_clusters -> 
+      docker_build_clusters ->
         Enum.reduce docker_build_clusters, [], fn(cluster, exchange_clusters) ->
           exchange_clusters ++ [{cluster["messaging_exchange_id"], cluster}]
         end
-    end    
+    end
   end
 
   @doc """
@@ -150,14 +150,14 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   ## Options
 
-  The `docker_build_clusters` option represents a List of tuples, each tuple consisting of
+  The `docker_build_clusters` option represents a list of tuples, each tuple consisting of
   {messaging_exchange_id, etcd_cluster}.  messaging_exchange_id is a String, etcd_cluster is a Map
 
   ## Return Values
 
   {messaging_exchange_id, cluster}
   """
-  @spec get_exchange_cluster(List) :: {String.t(), Map}
+  @spec get_exchange_cluster(list) :: {String.t, map}
   def get_exchange_cluster(docker_build_clusters) do
     if docker_build_clusters == nil || length(docker_build_clusters) == 0 do
       {nil, nil}

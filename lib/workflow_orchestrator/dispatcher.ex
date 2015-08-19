@@ -21,8 +21,8 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
   alias OpenAperture.ManagerApi.SystemEvent
 
   @moduledoc """
-  This module contains the logic to dispatch WorkflowOrchestrator messsages to the appropriate GenServer(s) 
-  """  
+  This module contains the logic to dispatch WorkflowOrchestrator messsages to the appropriate GenServer(s)
+  """
 
 	@connection_options nil
 	use OpenAperture.Messaging
@@ -36,10 +36,10 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}   
+  @spec start_link() :: {:ok, pid} | {:error, String.t}
   def start_link do
     case GenServer.start_link(__MODULE__, %{}, name: __MODULE__) do
-    	{:error, reason} -> 
+    	{:error, reason} ->
         Logger.error("Failed to start OpenAperture WorkflowOrchestrator:  #{inspect reason}")
         {:error, reason}
     	{:ok, pid} ->
@@ -47,10 +47,10 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
           if Application.get_env(:autostart, :register_queues, false) do
         		case register_queues do
               {:ok, _} -> {:ok, pid}
-              {:error, reason} -> 
+              {:error, reason} ->
                 Logger.error("Failed to register WorkflowOrchestrator queues:  #{inspect reason}")
                 {:ok, pid}
-            end    		
+            end
           else
             {:ok, pid}
           end
@@ -68,65 +68,65 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
 
   :ok | {:error, reason}
   """
-  @spec register_queues() :: :ok | {:error, String.t()}
+  @spec register_queues() :: :ok | {:error, String.t}
   def register_queues do
     Logger.debug("Registering WorkflowOrchestrator queues...")
     workflow_orchestration_queue = QueueBuilder.build(ManagerApi.get_api, Configuration.get_current_queue_name, Configuration.get_current_exchange_id)
 
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
-    subscribe(options, workflow_orchestration_queue, fn(payload, _meta, %{delivery_tag: delivery_tag} = async_info) -> 
+    subscribe(options, workflow_orchestration_queue, fn(payload, _meta, %{delivery_tag: delivery_tag} = async_info) ->
       try do
         Logger.debug("Starting to process request #{delivery_tag} (workflow #{payload[:id]})")
         MessageManager.track(async_info)
-        execute_orchestration(payload, delivery_tag) 
+        execute_orchestration(payload, delivery_tag)
       catch
-        :exit, code   -> 
+        :exit, code   ->
           error_msg = "Message #{delivery_tag} (workflow #{payload[:id]}) Exited with code #{inspect code}.  Payload:  #{inspect payload}"
           Logger.error(error_msg)
           event = %{
             unique: true,
-            type: :unhandled_exception, 
-            severity: :error, 
+            type: :unhandled_exception,
+            severity: :error,
             data: %{
               component: :workflow_orchestration,
               exchange_id: Configuration.get_current_exchange_id,
               hostname: System.get_env("HOSTNAME")
             },
             message: error_msg
-          }       
-          SystemEvent.create_system_event!(ManagerApi.get_api, event)            
+          }
+          SystemEvent.create_system_event!(ManagerApi.get_api, event)
           acknowledge(delivery_tag)
-        :throw, value -> 
+        :throw, value ->
           error_msg = "Message #{delivery_tag} (workflow #{payload[:id]}) Throw called with #{inspect value}.  Payload:  #{inspect payload}"
           Logger.error(error_msg)
           event = %{
             unique: true,
-            type: :unhandled_exception, 
-            severity: :error, 
+            type: :unhandled_exception,
+            severity: :error,
             data: %{
               component: :workflow_orchestration,
               exchange_id: Configuration.get_current_exchange_id,
               hostname: System.get_env("HOSTNAME")
             },
             message: error_msg
-          }       
-          SystemEvent.create_system_event!(ManagerApi.get_api, event)           
+          }
+          SystemEvent.create_system_event!(ManagerApi.get_api, event)
           acknowledge(delivery_tag)
-        what, value   -> 
+        what, value   ->
           error_msg = "Message #{delivery_tag} (workflow #{payload[:id]}) Caught #{inspect what} with #{inspect value}.  Payload:  #{inspect payload}"
           Logger.error(error_msg)
           event = %{
             unique: true,
-            type: :unhandled_exception, 
-            severity: :error, 
+            type: :unhandled_exception,
+            severity: :error,
             data: %{
               component: :workflow_orchestration,
               exchange_id: Configuration.get_current_exchange_id,
               hostname: System.get_env("HOSTNAME")
             },
             message: error_msg
-          }       
-          SystemEvent.create_system_event!(ManagerApi.get_api, event)           
+          }
+          SystemEvent.create_system_event!(ManagerApi.get_api, event)
           acknowledge(delivery_tag)
       end
     end)
@@ -141,7 +141,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
 
   The `delivery_tag` option is the unique identifier of the message
   """
-  @spec execute_orchestration(Map, String.t()) :: term
+  @spec execute_orchestration(map, String.t) :: term
   def execute_orchestration(payload, delivery_tag) do
     case WorkflowFSM.start_link(payload, delivery_tag) do
       {:ok, workflow} ->
@@ -151,7 +151,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
         else
           Logger.error("Payload failed to process request #{delivery_tag} (workflow #{payload[:id]}):  #{inspect result}")
         end
-      {:error, reason} -> 
+      {:error, reason} ->
         #raise an exception to kick the to another orchestrator (hopefully that can process it)
         raise "Unable to process request #{delivery_tag} (workflow #{payload[:id]}):  #{inspect reason}"
     end
@@ -164,7 +164,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
 
   The `delivery_tag` option is the unique identifier of the message
   """
-  @spec acknowledge(String.t()) :: term
+  @spec acknowledge(String.t) :: term
   def acknowledge(delivery_tag) do
     message = MessageManager.remove(delivery_tag)
     unless message == nil do
@@ -181,11 +181,11 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
 
   The `redeliver` option can be used to requeue a message
   """
-  @spec reject(String.t(), term) :: term
+  @spec reject(String.t, term) :: term
   def reject(delivery_tag, redeliver \\ false) do
     message = MessageManager.remove(delivery_tag)
     unless message == nil do
       SubscriptionHandler.reject(message[:subscription_handler], message[:delivery_tag], redeliver)
     end
-  end  
+  end
 end

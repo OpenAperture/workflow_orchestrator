@@ -10,7 +10,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
 
   @moduledoc """
   This module contains the logic to publish messages to the Deployer system module
-  """  
+  """
 
   alias OpenAperture.Messaging.ConnectionOptionsResolver
   alias OpenAperture.Messaging.AMQP.QueueBuilder
@@ -31,7 +31,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}   
+  @spec start_link() :: {:ok, pid} | {:error, String.t}
   def start_link do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
@@ -45,9 +45,9 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
 
   ## Return Values
 
-  :ok | {:error, reason}   
+  :ok | {:error, reason}
   """
-  @spec deploy(String.t(), String.t(), term) :: :ok | {:error, String.t()}
+  @spec deploy(String.t, String.t, term) :: :ok | {:error, String.t}
   def deploy(delivery_tag, messaging_exchange_id, payload) do
    	GenServer.cast(__MODULE__, {:deploy, delivery_tag, messaging_exchange_id, payload})
   end
@@ -61,9 +61,9 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
 
   ## Return Values
 
-  :ok | {:error, reason}   
+  :ok | {:error, reason}
   """
-  @spec deploy_oa(String.t(), String.t(), term) :: :ok | {:error, String.t()}
+  @spec deploy_oa(String.t, String.t, term) :: :ok | {:error, String.t}
   def deploy_oa(delivery_tag, messaging_exchange_id, payload) do
     GenServer.cast(__MODULE__, {:deploy_oa, delivery_tag, messaging_exchange_id, payload})
   end
@@ -83,7 +83,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
   would be sent by another process, which could cause
   messages to arrive out of order.
   """
-  @spec handle_cast({:deploy, String.t(), String.t(), Map}, Map) :: {:noreply, Map}
+  @spec handle_cast({:deploy, String.t, String.t, map}, map) :: {:noreply, map}
   def handle_cast({:deploy, _delivery_tag, messaging_exchange_id, payload}, state) do
     publish_message("deployer", messaging_exchange_id, payload)
     {:noreply, state}
@@ -104,18 +104,18 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
   would be sent by another process, which could cause
   messages to arrive out of order.
   """
-  @spec handle_cast({:deploy_oa, String.t(), String.t(), Map}, Map) :: {:noreply, Map}
+  @spec handle_cast({:deploy_oa, String.t, String.t, map}, map) :: {:noreply, map}
   def handle_cast({:deploy_oa, _delivery_tag, messaging_exchange_id, payload}, state) do
     publish_message("deploy_oa", messaging_exchange_id, payload)
     {:noreply, state}
   end
 
-  @spec publish_message(String.t, String.t, Map) :: :ok | {:error, String.t}
+  @spec publish_message(String.t, String.t, map) :: :ok | {:error, String.t}
   defp publish_message(queue_name, messaging_exchange_id, payload) do
     deploy_queue = QueueBuilder.build(ManagerApi.get_api, queue_name, messaging_exchange_id)
 
     connection_options = ConnectionOptionsResolver.resolve(
-      ManagerApi.get_api, 
+      ManagerApi.get_api,
       Configuration.get_current_broker_id,
       Configuration.get_current_exchange_id,
       messaging_exchange_id
@@ -124,6 +124,6 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
     case publish(connection_options, deploy_queue, payload) do
       :ok -> Logger.debug("Successfully published #{queue_name} message")
       {:error, reason} -> Logger.error("Failed to publish #{queue_name} message:  #{inspect reason}")
-    end    
+    end
   end
 end
