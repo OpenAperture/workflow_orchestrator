@@ -85,7 +85,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   ## Return Values
 
-  {List of {messaging_exchange_id, cluster}, state}
+  {list of {messaging_exchange_id, cluster}, state}
   """
   @spec get_build_clusters(map) :: {list, map}
   def get_build_clusters(state) do
@@ -108,9 +108,9 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   ## Return Values
 
-  List of {messaging_exchange_id, cluster}
+  list of {messaging_exchange_id, cluster}
   """
-  @spec get_local_build_clusters :: List
+  @spec get_local_build_clusters :: list
   def get_local_build_clusters do
     #1.  Lookup any clusters that exist in the current exchange
     Logger.debug("Looking for build clusters in exchange #{Configuration.get_current_exchange_id}...")
@@ -129,9 +129,9 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   ## Return Values
 
-  List of {messaging_exchange_id, cluster}
+  ;ist of {messaging_exchange_id, cluster}
   """
-  @spec get_global_build_clusters :: List
+  @spec get_global_build_clusters :: list
   def get_global_build_clusters do
     #2.  If no clusters are availabe in the exchange, check globally for clusters
     Logger.debug("No build clusters are available in exchange #{Configuration.get_current_exchange_id}, checking globally...")
@@ -150,7 +150,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   ## Options
 
-  The `docker_build_clusters` option represents a List of tuples, each tuple consisting of
+  The `docker_build_clusters` option represents a list of tuples, each tuple consisting of
   {messaging_exchange_id, etcd_cluster}.  messaging_exchange_id is a String, etcd_cluster is a Map
 
   ## Return Values
