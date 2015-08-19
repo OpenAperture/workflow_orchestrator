@@ -2,6 +2,8 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   use ExUnit.Case
   use ExVCR.Mock, adapter: ExVCR.Adapter.Httpc, options: [clear_mock: true]
 
+  use Timex
+
   alias OpenAperture.WorkflowOrchestrator.Workflow
   alias OpenAperture.WorkflowOrchestrator.WorkflowFSM
 
@@ -11,6 +13,8 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
   alias OpenAperture.WorkflowOrchestrator.Builder.Publisher, as: BuilderPublisher
   alias OpenAperture.WorkflowOrchestrator.Deployer.Publisher, as: DeployerPublisher
   alias OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolver
+
+  alias OpenAperture.WorkflowOrchestratorApi.WorkflowOrchestrator.Publisher, as: WorkflowOrchestratorPublisher
 
   # ============================
   # start_link tests
@@ -723,5 +727,89 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSMTest do
     :meck.unload(Workflow)  
     :meck.unload(EtcdClusterMessagingResolver)
     :meck.unload(DeployerPublisher)
+  end    
+
+  # ============================
+  # scheduled tests
+
+  test "scheduled - missing scheduled_start_time" do
+    :meck.new(Workflow, [:passthrough])
+    :meck.expect(Workflow, :workflow_failed, fn _,_ -> :ok end)
+    :meck.expect(Workflow, :get_info, fn _ -> %{scheduled_start_time: nil} end)
+
+    state_data = %{workflow_fsm_prefix: "[]", workflow: %{}}
+    assert WorkflowFSM.scheduled(:workflow_completed, nil, state_data) == {:reply, :in_progress, :workflow_completed, state_data}
+  after
+    :meck.unload(Workflow)
+  end
+
+  test "scheduled - start now" do
+    now = Date.from(:calendar.universal_time, :utc)
+
+    :meck.new(Workflow, [:passthrough])
+    :meck.expect(Workflow, :workflow_failed, fn _,_ -> :ok end)
+    :meck.expect(Workflow, :get_info, fn _ -> %{
+      scheduled_start_time: DateFormat.format!(now, "{RFC1123}")
+      } 
+    end)
+    :meck.expect(Workflow, :add_success_notification, fn _,_ -> :ok end)
+    :meck.expect(Workflow, :save, fn _ -> :ok end)
+
+    :meck.new(WorkflowOrchestratorPublisher, [:passthrough])
+    :meck.expect(WorkflowOrchestratorPublisher, :execute_orchestration, fn _ -> :ok end)
+
+    state_data = %{workflow_fsm_prefix: "[]", workflow: %{}}
+    assert WorkflowFSM.scheduled(:workflow_completed, nil, state_data) == {:reply, :in_progress, :workflow_completed, state_data}
+  after
+    :meck.unload(Workflow)
+    :meck.unload(WorkflowOrchestratorPublisher)
+  end
+
+  test "scheduled - over an hour" do
+    now_secs = :calendar.datetime_to_gregorian_seconds(:calendar.universal_time())
+    lookback_time = Date.from(:calendar.gregorian_seconds_to_datetime(now_secs-(25*60*60)))
+
+    :meck.new(Workflow, [:passthrough])
+    :meck.expect(Workflow, :workflow_failed, fn _,_ -> :ok end)
+    :meck.expect(Workflow, :get_info, fn _ -> %{
+      scheduled_start_time: DateFormat.format!(lookback_time, "{RFC1123}")
+      } 
+    end)
+    :meck.expect(Workflow, :add_success_notification, fn _,_ -> :ok end)
+    :meck.expect(Workflow, :save, fn _ -> :ok end)
+    :meck.expect(Workflow, :refresh, fn _ -> :ok end)
+
+    :meck.new(WorkflowOrchestratorPublisher, [:passthrough])
+    :meck.expect(WorkflowOrchestratorPublisher, :execute_orchestration, fn _ -> :ok end)
+
+    state_data = %{workflow_fsm_prefix: "[]", workflow: %{}}
+    assert WorkflowFSM.scheduled(:workflow_completed, nil, state_data) == {:reply, :in_progress, :workflow_completed, state_data}
+  after
+    :meck.unload(Workflow)
+    :meck.unload(WorkflowOrchestratorPublisher)
+  end  
+
+  test "scheduled - less than an hour" do
+    now_secs = :calendar.datetime_to_gregorian_seconds(:calendar.universal_time())
+    lookback_time = Date.from(:calendar.gregorian_seconds_to_datetime(now_secs-(60*60)))
+
+    :meck.new(Workflow, [:passthrough])
+    :meck.expect(Workflow, :workflow_failed, fn _,_ -> :ok end)
+    :meck.expect(Workflow, :get_info, fn _ -> %{
+      scheduled_start_time: DateFormat.format!(lookback_time, "{RFC1123}")
+      } 
+    end)
+    :meck.expect(Workflow, :add_success_notification, fn _,_ -> :ok end)
+    :meck.expect(Workflow, :save, fn _ -> :ok end)
+    :meck.expect(Workflow, :refresh, fn _ -> :ok end)
+
+    :meck.new(WorkflowOrchestratorPublisher, [:passthrough])
+    :meck.expect(WorkflowOrchestratorPublisher, :execute_orchestration, fn _ -> :ok end)
+
+    state_data = %{workflow_fsm_prefix: "[]", workflow: %{}}
+    assert WorkflowFSM.scheduled(:workflow_completed, nil, state_data) == {:reply, :in_progress, :workflow_completed, state_data}
+  after
+    :meck.unload(Workflow)
+    :meck.unload(WorkflowOrchestratorPublisher)
   end    
 end

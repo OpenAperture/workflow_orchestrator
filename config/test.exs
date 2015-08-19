@@ -26,7 +26,8 @@ config :openaperture_manager_api,
 
 config :openaperture_workflow_orchestrator, 
 	exchange_id: "1",
-	broker_id: "1"
+	broker_id: "1",
+	sleep_delay_factor: 0
 
 config :openaperture_overseer_api,
 	module_type: :test,

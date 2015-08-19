@@ -834,4 +834,131 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowTest do
     :meck.unload(NotificationsPublisher)
     :meck.unload(WorkflowAPI)
   end
+
+
+  # ============================
+  # refresh tests
+  test "refresh - failure" do
+    id = "#{UUID.uuid1()}"
+    payload = %{
+      id: id,
+      workflow_id: id,
+      deployment_repo: "deployment_repo",
+      deployment_repo_git_ref: "deployment_repo_git_ref",
+      source_repo: "source_repo",
+      source_repo_git_ref: "source_repo_git_ref",
+      source_commit_hash: "source_commit_hash",
+      milestones: [:build, :deploy],
+    }
+
+    updated_workflow = nil
+    :meck.new(WorkflowAPI, [:passthrough])
+    :meck.expect(WorkflowAPI, :get_workflow!, fn _,_ -> updated_workflow end)   
+
+    workflow = Workflow.create_from_payload(payload)
+    {status, reason} = Workflow.refresh(workflow)
+    assert status == :error
+    assert reason != nil
+
+    updated_workflow_info = Workflow.get_info(workflow)
+    assert updated_workflow_info[:id] == payload[:id]
+    assert updated_workflow_info[:deployment_repo] == payload[:deployment_repo]
+    assert updated_workflow_info[:deployment_repo_git_ref] == payload[:deployment_repo_git_ref]
+    assert updated_workflow_info[:source_repo] == payload[:source_repo]
+    assert updated_workflow_info[:source_repo_git_ref] == payload[:source_repo_git_ref]
+    assert updated_workflow_info[:source_commit_hash] == payload[:source_commit_hash]
+    assert updated_workflow_info[:milestones] == payload[:milestones]
+  after
+    :meck.unload(WorkflowAPI)
+  end  
+
+  test "refresh - success" do
+    id = "#{UUID.uuid1()}"
+    payload = %{
+      id: id,
+      workflow_id: id,
+      deployment_repo: "deployment_repo",
+      deployment_repo_git_ref: "deployment_repo_git_ref",
+      source_repo: "source_repo",
+      source_repo_git_ref: "source_repo_git_ref",
+      source_commit_hash: "source_commit_hash",
+      milestones: [:build, :deploy],
+    }
+
+    updated_workflow = %{
+      "id" => id,
+      "workflow_id" => id,
+      "deployment_repo" => "#{UUID.uuid1()}",
+      "deployment_repo_git_ref" => "#{UUID.uuid1()}",
+      "source_repo" => "#{UUID.uuid1()}",
+      "source_repo_git_ref" => "#{UUID.uuid1()}",
+      "source_commit_hash" => "#{UUID.uuid1()}",
+      "milestones" => [:build, :deploy],      
+    }
+    :meck.new(WorkflowAPI, [:passthrough])
+    :meck.expect(WorkflowAPI, :get_workflow!, fn _,_ -> updated_workflow end)   
+
+    workflow = Workflow.create_from_payload(payload)
+    assert Workflow.refresh(workflow) == :ok
+
+    updated_workflow_info = Workflow.get_info(workflow)
+    assert updated_workflow_info[:id] == updated_workflow["id"]
+    assert updated_workflow_info[:deployment_repo] == updated_workflow["deployment_repo"]
+    assert updated_workflow_info[:deployment_repo_git_ref] == updated_workflow["deployment_repo_git_ref"]
+    assert updated_workflow_info[:source_repo] == updated_workflow["source_repo"]
+    assert updated_workflow_info[:source_repo_git_ref] == updated_workflow["source_repo_git_ref"]
+    assert updated_workflow_info[:source_commit_hash] == updated_workflow["source_commit_hash"]
+    assert updated_workflow_info[:milestones] == updated_workflow["milestones"]    
+  after
+    :meck.unload(WorkflowAPI)
+  end
+
+  test "refresh - success with updated execute_options" do
+    id = "#{UUID.uuid1()}"
+    payload = %{
+      id: id,
+      workflow_id: id,
+      deployment_repo: "deployment_repo",
+      deployment_repo_git_ref: "deployment_repo_git_ref",
+      source_repo: "source_repo",
+      source_repo_git_ref: "source_repo_git_ref",
+      source_commit_hash: "source_commit_hash",
+      milestones: [:build, :deploy],
+    }
+
+    updated_workflow = %{
+      "id" => id,
+      "workflow_id" => id,
+      "deployment_repo" => "#{UUID.uuid1()}",
+      "deployment_repo_git_ref" => "#{UUID.uuid1()}",
+      "source_repo" => "#{UUID.uuid1()}",
+      "source_repo_git_ref" => "#{UUID.uuid1()}",
+      "source_commit_hash" => "#{UUID.uuid1()}",
+      "milestones" => [:build, :deploy],
+      "execute_options" => %{
+        "force_build" => true,
+        "build_messaging_exchange_id" => "#{UUID.uuid1()}",
+        "deploy_messaging_exchange_id" => "#{UUID.uuid1()}",        
+      }
+    }
+    :meck.new(WorkflowAPI, [:passthrough])
+    :meck.expect(WorkflowAPI, :get_workflow!, fn _,_ -> updated_workflow end)   
+
+    workflow = Workflow.create_from_payload(payload)
+    assert Workflow.refresh(workflow) == :ok
+
+    updated_workflow_info = Workflow.get_info(workflow)
+    assert updated_workflow_info[:id] == updated_workflow["id"]
+    assert updated_workflow_info[:deployment_repo] == updated_workflow["deployment_repo"]
+    assert updated_workflow_info[:deployment_repo_git_ref] == updated_workflow["deployment_repo_git_ref"]
+    assert updated_workflow_info[:source_repo] == updated_workflow["source_repo"]
+    assert updated_workflow_info[:source_repo_git_ref] == updated_workflow["source_repo_git_ref"]
+    assert updated_workflow_info[:source_commit_hash] == updated_workflow["source_commit_hash"]
+    assert updated_workflow_info[:milestones] == updated_workflow["milestones"]    
+    assert updated_workflow_info[:force_build] == updated_workflow["execute_options"]["force_build"]
+    assert updated_workflow_info[:build_messaging_exchange_id] == updated_workflow["execute_options"]["build_messaging_exchange_id"]
+    assert updated_workflow_info[:deploy_messaging_exchange_id] == updated_workflow["execute_options"]["deploy_messaging_exchange_id"]   
+  after
+    :meck.unload(WorkflowAPI)
+  end  
 end

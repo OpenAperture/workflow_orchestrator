@@ -38,6 +38,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   alias OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolver
 
   alias OpenAperture.WorkflowOrchestratorApi.Request, as: OrchestratorRequest
+  alias OpenAperture.WorkflowOrchestratorApi.WorkflowOrchestrator.Publisher, as: WorkflowOrchestratorPublisher
 
   @doc """
   Method to start a WorkflowFSM
@@ -435,5 +436,69 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
     # after this action, we want to complete the current Workflow Orchestration.  The worker will
     # call back in after it's action has been completed
     {:reply, :in_progress, :workflow_completed, state_data}
+  end
+
+  @doc """
+  :gen_fsm callback - http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-3 for the state :scheduled
+  This callback will take the following action(s):
+    * Determine the correct amount of time before the request should be re-evaluated
+    * Sleep for a period of time (not necessarily the full duration, as we'll want to evaluate for terminated workflows)
+    * Refresh the Workflow
+    * Requeue a message
+
+  ## Options
+
+  The `current_state` option contains the last state of the :gen_fsm server
+
+  The `from` option contains the caller of the state transition
+
+  The `state_data` option contains the default state data of the :gen_fsm server
+
+  ## Return Values
+  
+  {:reply, :in_progress, :workflow_completed, state_data}
+  """
+  @spec scheduled(term, term, Map) :: {:reply, :in_progress, :workflow_completed, Map}
+  def scheduled(_event, _from, state_data) do
+    workflow_info = Workflow.get_info(state_data[:workflow])
+    if workflow_info[:scheduled_start_time] == nil do
+      Workflow.workflow_failed(state_data[:workflow], "Unable to execute deployment - the scheduled milestone was invoked, but no scheduled_start_time was set!")    
+    else
+      sleep_delay_factor = Application.get_env(:openaperture_workflow_orchestrator, :sleep_delay_factor, 1)
+
+      datetime = DateFormat.parse!(workflow_info[:scheduled_start_time], "{RFC1123}")
+      erl_date = DateConvert.to_erlang_datetime(datetime)
+      scheduled_start_time_seconds = :calendar.datetime_to_gregorian_seconds(erl_date)
+      now_seconds = :calendar.datetime_to_gregorian_seconds(:calendar.universal_time())
+      remaining_seconds = scheduled_start_time_seconds - now_seconds
+      cond do
+        # sleep for a max of an hour
+        remaining_seconds > 3600 -> 
+          Workflow.add_success_notification(state_data[:workflow], "Workflow is not scheduled to start until #{workflow_info[:scheduled_start_time]} (#{remaining_seconds} seconds remain).  Next evaluation will occur in 1 hour")
+          Workflow.save(state_data[:workflow])
+          :timer.sleep(3600000 * sleep_delay_factor)
+          #wipe out the current step and queue another evaluation
+          Workflow.refresh(state_data[:workflow])
+          request = %{OrchestratorRequest.from_payload(Workflow.get_info(state_data[:workflow])) | current_step: nil}
+          WorkflowOrchestratorPublisher.execute_orchestration(request)
+        remaining_seconds > 0 -> 
+          Workflow.add_success_notification(state_data[:workflow], "Workflow is not scheduled to start until #{workflow_info[:scheduled_start_time]} (#{remaining_seconds} seconds remain).  Next evaluation will occur in #{remaining_seconds} seconds")
+          Workflow.save(state_data[:workflow])
+          :timer.sleep((remaining_seconds+10) * sleep_delay_factor)
+          #wipe out the current step and queue another evaluation
+          Workflow.refresh(state_data[:workflow])
+          request = %{OrchestratorRequest.from_payload(Workflow.get_info(state_data[:workflow])) | current_step: nil}
+          WorkflowOrchestratorPublisher.execute_orchestration(request)          
+        true ->
+          #complete the milestone
+          Workflow.add_success_notification(state_data[:workflow], "Workflow is now scheduled to start")          
+          Workflow.save(state_data[:workflow])
+          WorkflowOrchestratorPublisher.execute_orchestration(OrchestratorRequest.from_payload(Workflow.get_info(state_data[:workflow])))
+      end
+    end
+
+    # after this action, we want to complete the current Workflow Orchestration.  The worker will
+    # call back in after it's action has been completed
+    {:reply, :in_progress, :workflow_completed, state_data}    
   end
 end

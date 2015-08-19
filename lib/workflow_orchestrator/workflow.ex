@@ -384,6 +384,8 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
         workflow_error: workflow_error,
         workflow_completed: workflow_info[:workflow_completed],
         event_log: workflow_info[:event_log],
+        scheduled_start_time: workflow_info[:scheduled_start_time],
+        execute_options: workflow_info[:execute_options]        
       }
 		
       case WorkflowAPI.update_workflow(ManagerApi.get_api, workflow_info[:id], workflow_payload) do
@@ -406,6 +408,77 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
         {:error, error_message}
     end      
   end	
+
+  @spec refresh(pid) :: :ok | {:error, String.t}
+  def refresh(workflow) do
+    try do    
+      updated_payload = get_info(workflow)
+
+      Logger.debug("Refreshing workflow #{updated_payload[:id]}...")
+      updated_workflow = WorkflowAPI.get_workflow!(ManagerApi.get_api, updated_payload[:id])
+      if updated_workflow != nil do
+        force_build = if updated_workflow["execute_options"]["force_build"] != nil do
+          updated_workflow["execute_options"]["force_build"]
+        else
+          updated_payload[:force_build]
+        end
+
+        build_messaging_exchange_id = if updated_workflow["execute_options"]["build_messaging_exchange_id"] != nil do
+          updated_workflow["execute_options"]["build_messaging_exchange_id"]
+        else
+          updated_payload[:build_messaging_exchange_id]
+        end
+
+        deploy_messaging_exchange_id = if updated_workflow["execute_options"]["deploy_messaging_exchange_id"] != nil do
+          updated_workflow["execute_options"]["deploy_messaging_exchange_id"]
+        else
+          updated_payload[:deploy_messaging_exchange_id]
+        end
+
+        updated_payload = Map.merge(updated_payload, %{
+          id: updated_workflow["id"],
+          deployment_repo: updated_workflow["deployment_repo"],
+          deployment_repo_git_ref: updated_workflow["deployment_repo_git_ref"],
+          source_repo: updated_workflow["source_repo"],
+          source_repo_git_ref: updated_workflow["source_repo_git_ref"],
+          source_commit_hash: updated_workflow["source_commit_hash"],
+          milestones: updated_workflow["milestones"],
+          current_step: updated_workflow["current_step"],
+          elapsed_step_time: updated_workflow["step_time"],
+          elapsed_workflow_time: updated_workflow["workflow_start_time"],
+          workflow_duration: updated_workflow["workflow_duration"],
+          workflow_step_durations: updated_workflow["workflow_step_durations"],
+          workflow_error: updated_workflow["workflow_error"],
+          workflow_completed: updated_workflow["workflow_completed"],
+          event_log: updated_workflow["event_log"],
+          scheduled_start_time: updated_workflow["scheduled_start_time"],
+          execute_options: updated_workflow["execute_options"],
+          force_build: force_build,
+          build_messaging_exchange_id: build_messaging_exchange_id,
+          deploy_messaging_exchange_id: deploy_messaging_exchange_id
+        })
+
+        Logger.debug("Successfully refreshed workflow #{updated_payload[:id]}")
+        Agent.update(workflow, fn _ -> updated_payload end)
+        :ok    
+      else
+        error_msg = "Failed to refresh workflow #{updated_payload[:id]}!"
+        Logger.error(error_msg)
+        {:error, error_msg}
+      end
+    catch
+      :exit, code   -> 
+        error_message = "Failed to refresh workflow; Exited with code #{inspect code}"
+        Logger.error(error_message)        
+        {:error, error_message}
+      :throw, value -> 
+        error_message = "Failed to refresh workflow; Throw called with #{inspect value}"
+        {:error, error_message}
+      what, value   -> 
+        error_message = "Failed to refresh workflow; Caught #{inspect what} with #{inspect value}"
+        {:error, error_message}
+    end          
+  end
 
   @doc """
   Method to determine the next workflow step, based on the current state of the workflow

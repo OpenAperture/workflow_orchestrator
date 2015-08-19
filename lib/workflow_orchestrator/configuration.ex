@@ -44,7 +44,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Configuration do
   """ 
   @spec get_current_queue_name() :: String.t()
   def get_current_queue_name do
-    get_config("QUEUE_NAME", :openaperture_overseer, :queue_name)
+    get_config("QUEUE_NAME", :openaperture_workflow_orchestrator, :queue_name)
   end
 
   @doc """
@@ -58,7 +58,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Configuration do
   """ 
   @spec get_ui_url() :: String.t()
   def get_ui_url do
-    get_config("UI_URL", :openaperture_overseer, :ui_url)
+    get_config("UI_URL", :openaperture_workflow_orchestrator, :ui_url)
   end
 
   @doc false
