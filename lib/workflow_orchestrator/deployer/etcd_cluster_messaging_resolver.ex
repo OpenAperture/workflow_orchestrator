@@ -24,7 +24,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolve
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}
+  @spec start_link() :: {:ok, pid} | {:error, String.t}
   def start_link do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
@@ -40,7 +40,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolve
 
   messaging_exchange_id
   """
-  @spec exchange_for_cluster(String.t()) :: String.t()
+  @spec exchange_for_cluster(String.t) :: String.t
   def exchange_for_cluster(etcd_token) do
   	GenServer.call(__MODULE__, {:exchange_for_cluster, etcd_token})
   end
@@ -60,7 +60,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolve
 
   {:reply, {messaging_exchange_id, machine}, resolved_state}
   """
-  @spec handle_call({:exchange_for_cluster, String.t()}, term, Map) :: {:reply, {String.t(), Map}, Map}
+  @spec handle_call({:exchange_for_cluster, String.t}, term, Map) :: {:reply, {String.t, Map}, Map}
   def handle_call({:exchange_for_cluster, etcd_token}, _from, state) do
     {:reply, get_exchange_for_cluster(etcd_token), state}
   end

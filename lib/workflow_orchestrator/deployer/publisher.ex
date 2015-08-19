@@ -31,7 +31,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}
+  @spec start_link() :: {:ok, pid} | {:error, String.t}
   def start_link do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
@@ -47,7 +47,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
 
   :ok | {:error, reason}
   """
-  @spec deploy(String.t(), String.t(), term) :: :ok | {:error, String.t()}
+  @spec deploy(String.t, String.t, term) :: :ok | {:error, String.t}
   def deploy(delivery_tag, messaging_exchange_id, payload) do
    	GenServer.cast(__MODULE__, {:deploy, delivery_tag, messaging_exchange_id, payload})
   end
@@ -63,7 +63,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
 
   :ok | {:error, reason}
   """
-  @spec deploy_oa(String.t(), String.t(), term) :: :ok | {:error, String.t()}
+  @spec deploy_oa(String.t, String.t, term) :: :ok | {:error, String.t}
   def deploy_oa(delivery_tag, messaging_exchange_id, payload) do
     GenServer.cast(__MODULE__, {:deploy_oa, delivery_tag, messaging_exchange_id, payload})
   end
@@ -83,7 +83,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
   would be sent by another process, which could cause
   messages to arrive out of order.
   """
-  @spec handle_cast({:deploy, String.t(), String.t(), Map}, Map) :: {:noreply, Map}
+  @spec handle_cast({:deploy, String.t, String.t, Map}, Map) :: {:noreply, Map}
   def handle_cast({:deploy, _delivery_tag, messaging_exchange_id, payload}, state) do
     publish_message("deployer", messaging_exchange_id, payload)
     {:noreply, state}
@@ -104,7 +104,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
   would be sent by another process, which could cause
   messages to arrive out of order.
   """
-  @spec handle_cast({:deploy_oa, String.t(), String.t(), Map}, Map) :: {:noreply, Map}
+  @spec handle_cast({:deploy_oa, String.t, String.t, Map}, Map) :: {:noreply, Map}
   def handle_cast({:deploy_oa, _delivery_tag, messaging_exchange_id, payload}, state) do
     publish_message("deploy_oa", messaging_exchange_id, payload)
     {:noreply, state}

@@ -36,7 +36,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}
+  @spec start_link() :: {:ok, pid} | {:error, String.t}
   def start_link do
     case GenServer.start_link(__MODULE__, %{}, name: __MODULE__) do
     	{:error, reason} ->
@@ -68,7 +68,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
 
   :ok | {:error, reason}
   """
-  @spec register_queues() :: :ok | {:error, String.t()}
+  @spec register_queues() :: :ok | {:error, String.t}
   def register_queues do
     Logger.debug("Registering WorkflowOrchestrator queues...")
     workflow_orchestration_queue = QueueBuilder.build(ManagerApi.get_api, Configuration.get_current_queue_name, Configuration.get_current_exchange_id)
@@ -141,7 +141,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
 
   The `delivery_tag` option is the unique identifier of the message
   """
-  @spec execute_orchestration(Map, String.t()) :: term
+  @spec execute_orchestration(Map, String.t) :: term
   def execute_orchestration(payload, delivery_tag) do
     case WorkflowFSM.start_link(payload, delivery_tag) do
       {:ok, workflow} ->
@@ -164,7 +164,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
 
   The `delivery_tag` option is the unique identifier of the message
   """
-  @spec acknowledge(String.t()) :: term
+  @spec acknowledge(String.t) :: term
   def acknowledge(delivery_tag) do
     message = MessageManager.remove(delivery_tag)
     unless message == nil do
@@ -181,7 +181,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
 
   The `redeliver` option can be used to requeue a message
   """
-  @spec reject(String.t(), term) :: term
+  @spec reject(String.t, term) :: term
   def reject(delivery_tag, redeliver \\ false) do
     message = MessageManager.remove(delivery_tag)
     unless message == nil do

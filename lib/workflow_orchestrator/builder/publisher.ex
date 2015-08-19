@@ -31,7 +31,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.Publisher do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}
+  @spec start_link() :: {:ok, pid} | {:error, String.t}
   def start_link do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
@@ -47,7 +47,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.Publisher do
 
   :ok | {:error, reason}
   """
-  @spec build(String.t(), String.t(), term) :: :ok | {:error, String.t()}
+  @spec build(String.t, String.t, term) :: :ok | {:error, String.t}
   def build(delivery_tag, messaging_exchange_id, payload) do
    	GenServer.cast(__MODULE__, {:build, delivery_tag, messaging_exchange_id, payload})
   end
@@ -67,7 +67,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.Publisher do
   would be sent by another process, which could cause
   messages to arrive out of order.
   """
-  @spec handle_cast({:build, String.t(), String.t(), Map}, Map) :: {:noreply, Map}
+  @spec handle_cast({:build, String.t, String.t, Map}, Map) :: {:noreply, Map}
   def handle_cast({:build, _delivery_tag, messaging_exchange_id, payload}, state) do
     if !OpenAperture.ManagerApi.MessagingExchange.exchange_has_modules_of_type?(messaging_exchange_id, "builder") do
       {:error, "No builder modules were found on exchange #{messaging_exchange_id}"}

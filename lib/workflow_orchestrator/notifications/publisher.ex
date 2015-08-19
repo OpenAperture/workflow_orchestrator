@@ -32,7 +32,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Notifications.Publisher do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}
+  @spec start_link() :: {:ok, pid} | {:error, String.t}
   def start_link do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
@@ -54,7 +54,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Notifications.Publisher do
 
   :ok | {:error, reason}
   """
-  @spec hipchat_notification(term, String.t(), String.t(), List) :: :ok | {:error, String.t()}
+  @spec hipchat_notification(term, String.t, String.t, List) :: :ok | {:error, String.t}
   def hipchat_notification(is_success, prefix, message, room_names \\ nil) do
 		payload = %{
 			is_success: is_success,
@@ -85,7 +85,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Notifications.Publisher do
 
   :ok | {:error, reason}
   """
-  @spec email_notification(String.t, String.t(), List) :: :ok | {:error, String.t()}
+  @spec email_notification(String.t, String.t, List) :: :ok | {:error, String.t}
   def email_notification(subject, message, recipients) do
     payload = %{
       prefix: subject,

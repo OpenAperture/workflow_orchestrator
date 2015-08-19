@@ -26,7 +26,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}
+  @spec start_link() :: {:ok, pid} | {:error, String.t}
   def start_link do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
@@ -38,7 +38,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   Returns a tuple containing {messaging_exchange_id, etcd_cluster}
   """
-  @spec next_available() :: {String.t(), Map}
+  @spec next_available() :: {String.t, Map}
   def next_available() do
   	GenServer.call(__MODULE__, {:next_available})
   end
@@ -56,7 +56,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   {:reply, {messaging_exchange_id, machine}, resolved_state}
   """
-  @spec handle_call({:next_available}, term, Map) :: {:reply, {String.t(), Map}, Map}
+  @spec handle_call({:next_available}, term, Map) :: {:reply, {String.t, Map}, Map}
   def handle_call({:next_available}, _from, state) do
     {docker_build_clusters, resolved_state} = get_build_clusters(state)
     {:reply, get_exchange_cluster(docker_build_clusters), resolved_state}
@@ -157,7 +157,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   {messaging_exchange_id, cluster}
   """
-  @spec get_exchange_cluster(List) :: {String.t(), Map}
+  @spec get_exchange_cluster(List) :: {String.t, Map}
   def get_exchange_cluster(docker_build_clusters) do
     if docker_build_clusters == nil || length(docker_build_clusters) == 0 do
       {nil, nil}

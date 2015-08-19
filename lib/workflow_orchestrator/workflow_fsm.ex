@@ -53,7 +53,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   {:ok, WorkflowFSM} | {:error, reason}
   """
-  @spec start_link(Map, String.t()) :: {:ok, pid} | {:error, String.t()}
+  @spec start_link(Map, String.t) :: {:ok, pid} | {:error, String.t}
 	def start_link(payload, delivery_tag) do
     case Workflow.create_from_payload(payload) do
       {:error, reason} -> {:error, reason}

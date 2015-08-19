@@ -38,7 +38,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   pid (Workflow) | {:error, reason}
   """
-  @spec create_from_payload(Map) :: pid | {:error, String.t()}
+  @spec create_from_payload(Map) :: pid | {:error, String.t}
   def create_from_payload(payload) do
     defaults = %{
       workflow_start_time: Time.now(),
@@ -82,7 +82,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   identifier
   """
-  @spec get_id(pid) :: String.t()
+  @spec get_id(pid) :: String.t
   def get_id(workflow) do
   	get_info(workflow)[:id]
   end
@@ -221,7 +221,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   :ok
   """
-  @spec add_success_notification(pid, String.t()) :: :ok
+  @spec add_success_notification(pid, String.t) :: :ok
   def add_success_notification(workflow, message) do
     workflow_info = send_success_notification(get_info(workflow), message)
     Agent.update(workflow, fn _ -> workflow_info end)
@@ -241,7 +241,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   :ok
   """
-  @spec add_failure_notification(pid, String.t()) :: :ok
+  @spec add_failure_notification(pid, String.t) :: :ok
   def add_failure_notification(workflow, message) do
     workflow_info = send_failure_notification(get_info(workflow), message)
     Agent.update(workflow, fn _ -> workflow_info end)
@@ -261,7 +261,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   Map, containing the updated workflow_info
   """
-  @spec send_success_notification(Map, String.t()) :: Map
+  @spec send_success_notification(Map, String.t) :: Map
 	def send_success_notification(workflow_info, message) do
 		send_notification(workflow_info, true, message)
 	end
@@ -279,7 +279,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   Map, containing the updated workflow_info
   """
-  @spec send_failure_notification(Map, String.t()) :: Map
+  @spec send_failure_notification(Map, String.t) :: Map
 	def send_failure_notification(workflow_info, message) do
 		send_notification(workflow_info, false, message)
 	end
@@ -299,7 +299,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   Map, containing the updated workflow_info
   """
-  @spec send_notification(Map, term, String.t()) :: Map
+  @spec send_notification(Map, term, String.t) :: Map
 	def send_notification(workflow_info, is_success, message) do
 		prefix = build_notification_prefix(workflow_info)
     Logger.debug("#{prefix} #{message}")
@@ -312,7 +312,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
     workflow_info
 	end
 
-  @spec build_notification_prefix(Map) :: String.t()
+  @spec build_notification_prefix(Map) :: String.t
   defp build_notification_prefix(workflow_info) do
     deployment_repo = workflow_info[:deployment_repo] || "Unknown"
     "[OA][#{workflow_info[:id]}][#{deployment_repo}]"
@@ -333,7 +333,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   The updated Workflow info
   """
-  @spec add_event_to_log(Map, String.t(), String.t()) :: Map
+  @spec add_event_to_log(Map, String.t, String.t) :: Map
   def add_event_to_log(workflow_info, event, prefix \\ nil) do
     if (prefix == nil) do
       prefix = build_notification_prefix(workflow_info)
@@ -358,7 +358,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   :ok | {:error, reason}
   """
-  @spec save(pid) :: :ok | {:error, String.t()}
+  @spec save(pid) :: :ok | {:error, String.t}
 	def save(workflow) do
     try do
   		workflow_info = get_info(workflow)
@@ -553,7 +553,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   :ok | {:error, reason}
   """
-  @spec workflow_failed(pid, String.t()) :: :ok | {:error, String.t()}
+  @spec workflow_failed(pid, String.t) :: :ok | {:error, String.t}
   def workflow_failed(workflow, reason) do
   	workflow_info = get_info(workflow)
     workflow_info = send_failure_notification(workflow_info, "Workflow Milestone Failed:  #{inspect workflow_info[:current_step]}.  Reason:  #{reason}")
@@ -589,7 +589,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   :ok | {:error, reason}
   """
-  @spec send_workflow_completed_email(pid) :: :ok | {:error, String.t()}
+  @spec send_workflow_completed_email(pid) :: :ok | {:error, String.t}
   def send_workflow_completed_email(workflow) do
     workflow_info = get_info(workflow)
 

@@ -21,7 +21,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Supervisor do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}
+  @spec start_link() :: {:ok, pid} | {:error, String.t}
   def start_link do
     Logger.info("Starting OpenAperture.WorkflowOrchestrator.Supervisor...")
     :supervisor.start_link(__MODULE__, [])
@@ -38,7 +38,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Supervisor do
 
   {:ok, state} | {:ok, state, timeout} | :ignore | {:stop, reason}
   """
-  @spec init(term) :: {:ok, term} | {:ok, term, term} | :ignore | {:stop, String.t()}
+  @spec init(term) :: {:ok, term} | {:ok, term, term} | :ignore | {:stop, String.t}
   def init([]) do
     import Supervisor.Spec
 
