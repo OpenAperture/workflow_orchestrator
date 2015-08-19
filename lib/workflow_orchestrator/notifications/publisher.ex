@@ -112,7 +112,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Notifications.Publisher do
   {:noreply, state}
 
   """
-  @spec handle_cast({term, Map}, Map) :: {:noreply, Map}
+  @spec handle_cast({term, map}, map) :: {:noreply, map}
   def handle_cast({notification_type, payload}, state) do
     notification_type_string = to_string(notification_type)
     queue = QueueBuilder.build(ManagerApi.get_api, "notifications_#{notification_type_string}", Configuration.get_current_exchange_id)

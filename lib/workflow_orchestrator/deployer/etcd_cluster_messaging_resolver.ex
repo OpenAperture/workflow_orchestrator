@@ -60,7 +60,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolve
 
   {:reply, {messaging_exchange_id, machine}, resolved_state}
   """
-  @spec handle_call({:exchange_for_cluster, String.t}, term, Map) :: {:reply, {String.t, Map}, Map}
+  @spec handle_call({:exchange_for_cluster, String.t}, term, map) :: {:reply, {String.t, map}, map}
   def handle_call({:exchange_for_cluster, etcd_token}, _from, state) do
     {:reply, get_exchange_for_cluster(etcd_token), state}
   end
@@ -76,7 +76,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolve
 
   List of {messaging_exchange_id, cluster}
   """
-  @spec get_exchange_for_cluster(Map) :: List
+  @spec get_exchange_for_cluster(map) :: list
   def get_exchange_for_cluster(etcd_token) do
     case EtcdCluster.get_cluster!(ManagerApi.get_api, etcd_token) do
       nil -> nil

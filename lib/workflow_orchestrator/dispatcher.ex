@@ -141,7 +141,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
 
   The `delivery_tag` option is the unique identifier of the message
   """
-  @spec execute_orchestration(Map, String.t) :: term
+  @spec execute_orchestration(map, String.t) :: term
   def execute_orchestration(payload, delivery_tag) do
     case WorkflowFSM.start_link(payload, delivery_tag) do
       {:ok, workflow} ->

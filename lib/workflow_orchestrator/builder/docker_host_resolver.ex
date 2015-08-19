@@ -38,7 +38,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   Returns a tuple containing {messaging_exchange_id, etcd_cluster}
   """
-  @spec next_available() :: {String.t, Map}
+  @spec next_available() :: {String.t, map}
   def next_available() do
   	GenServer.call(__MODULE__, {:next_available})
   end
@@ -56,7 +56,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   {:reply, {messaging_exchange_id, machine}, resolved_state}
   """
-  @spec handle_call({:next_available}, term, Map) :: {:reply, {String.t, Map}, Map}
+  @spec handle_call({:next_available}, term, map) :: {:reply, {String.t, map}, map}
   def handle_call({:next_available}, _from, state) do
     {docker_build_clusters, resolved_state} = get_build_clusters(state)
     {:reply, get_exchange_cluster(docker_build_clusters), resolved_state}
@@ -69,7 +69,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   Boolean
   """
-  @spec cache_stale?(Map) :: term
+  @spec cache_stale?(map) :: term
   def cache_stale?(state) do
     if state[:docker_build_clusters_retrieval_time] == nil do
       true
@@ -87,7 +87,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   {List of {messaging_exchange_id, cluster}, state}
   """
-  @spec get_build_clusters(Map) :: {List, Map}
+  @spec get_build_clusters(map) :: {list, map}
   def get_build_clusters(state) do
     unless state[:docker_build_clusters] == nil || cache_stale?(state) do
       {state[:docker_build_clusters], state}
@@ -157,7 +157,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   {messaging_exchange_id, cluster}
   """
-  @spec get_exchange_cluster(List) :: {String.t, Map}
+  @spec get_exchange_cluster(list) :: {String.t, map}
   def get_exchange_cluster(docker_build_clusters) do
     if docker_build_clusters == nil || length(docker_build_clusters) == 0 do
       {nil, nil}

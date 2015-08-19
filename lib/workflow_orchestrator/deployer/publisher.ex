@@ -83,7 +83,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
   would be sent by another process, which could cause
   messages to arrive out of order.
   """
-  @spec handle_cast({:deploy, String.t, String.t, Map}, Map) :: {:noreply, Map}
+  @spec handle_cast({:deploy, String.t, String.t, map}, map) :: {:noreply, map}
   def handle_cast({:deploy, _delivery_tag, messaging_exchange_id, payload}, state) do
     publish_message("deployer", messaging_exchange_id, payload)
     {:noreply, state}
@@ -104,13 +104,13 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
   would be sent by another process, which could cause
   messages to arrive out of order.
   """
-  @spec handle_cast({:deploy_oa, String.t, String.t, Map}, Map) :: {:noreply, Map}
+  @spec handle_cast({:deploy_oa, String.t, String.t, map}, map) :: {:noreply, map}
   def handle_cast({:deploy_oa, _delivery_tag, messaging_exchange_id, payload}, state) do
     publish_message("deploy_oa", messaging_exchange_id, payload)
     {:noreply, state}
   end
 
-  @spec publish_message(String.t, String.t, Map) :: :ok | {:error, String.t}
+  @spec publish_message(String.t, String.t, map) :: :ok | {:error, String.t}
   defp publish_message(queue_name, messaging_exchange_id, payload) do
     deploy_queue = QueueBuilder.build(ManagerApi.get_api, queue_name, messaging_exchange_id)
 

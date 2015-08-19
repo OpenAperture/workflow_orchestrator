@@ -53,7 +53,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   {:ok, WorkflowFSM} | {:error, reason}
   """
-  @spec start_link(Map, String.t) :: {:ok, pid} | {:error, String.t}
+  @spec start_link(map, String.t) :: {:ok, pid} | {:error, String.t}
 	def start_link(payload, delivery_tag) do
     case Workflow.create_from_payload(payload) do
       {:error, reason} -> {:error, reason}
@@ -91,7 +91,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   {:ok, :workflow_starting, state_data}
   """
-  @spec init(pid) :: {:ok, :workflow_starting, Map}
+  @spec init(pid) :: {:ok, :workflow_starting, map}
 	def init(state_data) do
     state_data = Map.put(state_data, :workflow_fsm_id, "#{UUID.uuid1()}")
     state_data = Map.put(state_data, :workflow_fsm_prefix, "[WorkflowFSM][#{state_data[:workflow_fsm_id]}][Workflow][#{Workflow.get_id(state_data[:workflow])}]")
@@ -113,7 +113,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   :ok
   """
-  @spec terminate(term, term, Map) :: :ok
+  @spec terminate(term, term, map) :: :ok
 	def terminate(_reason, _current_state, state_data) do
 		Logger.debug("#{state_data[:workflow_fsm_prefix]} Workflow Orchestration has finished normally")
 		:ok
@@ -134,9 +134,9 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   ## Return Values
 
-  {:ok, term, Map}
+  {:ok, term, map}
   """
-  @spec code_change(term, term, Map, term) :: {:ok, term, Map}
+  @spec code_change(term, term, map, term) :: {:ok, term, map}
   def code_change(_old_vsn, current_state, state_data, _opts) do
     {:ok, current_state, state_data}
   end
@@ -154,9 +154,9 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   ## Return Values
 
-  {:next_state,term,Map}
+  {:next_state, term, map}
   """
-  @spec handle_info(term, term, Map) :: {:next_state,term,Map}
+  @spec handle_info(term, term, map) :: {:next_state,term, map}
   def handle_info(_info, current_state, state_data) do
     {:next_state,current_state,state_data}
   end
@@ -174,9 +174,9 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   ## Return Values
 
-  {:next_state,term,Map}
+  {:next_state, term, map}
   """
-  @spec handle_event(term, term, Map) :: {:next_state,term,Map}
+  @spec handle_event(term, term, map) :: {:next_state,term, map}
   def handle_event(_event, current_state, state_data) do
     {:next_state,current_state,state_data}
   end
@@ -196,9 +196,9 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   ## Return Values
 
-  {:next_state,term,Map}
+  {:next_state, term, map}
   """
-  @spec handle_sync_event(term, term, term, Map) :: {:next_state,term,Map}
+  @spec handle_sync_event(term, term, term, map) :: {:next_state,term, map}
   def handle_sync_event(_event, _from, current_state, state_data) do
     {:next_state,current_state,state_data}
   end
@@ -222,7 +222,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   {:reply, :in_progress, next_milestone, state_data}
   """
-  @spec workflow_starting(term, term, Map) :: {:reply, :in_progress, term, Map}
+  @spec workflow_starting(term, term, map) :: {:reply, :in_progress, term, map}
   def workflow_starting(_current_state, _from, state_data) do
     Logger.debug("#{state_data[:workflow_fsm_prefix]} Starting Workflow Orchestration for request message #{state_data[:delivery_tag]}...")
 
@@ -261,7 +261,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   {:stop, :normal, {:completed, state_data[:workflow]}, state_data}
   """
-  @spec workflow_completed(term, term, Map) :: {:stop, :normal, {:completed, pid}, Map}
+  @spec workflow_completed(term, term, map) :: {:stop, :normal, {:completed, pid}, map}
   def workflow_completed(_current_state, _from, state_data) do
     Logger.debug("#{state_data[:workflow_fsm_prefix]} Finishing Workflow Orchestration...")
 
@@ -293,12 +293,12 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   {:reply, :in_progress, :workflow_completed, state_data}
   """
-  @spec build(term, term, Map) :: {:reply, :in_progress, :workflow_completed, Map}
+  @spec build(term, term, map) :: {:reply, :in_progress, :workflow_completed, map}
   def build(_event, _from, state_data) do
     call_builder(state_data)
   end
 
-  @spec config(term, term, Map) :: {:reply, :in_progress, :workflow_completed, Map}
+  @spec config(term, term, map) :: {:reply, :in_progress, :workflow_completed, map}
   def config(_event, _from, state_data) do
     call_builder(state_data)
   end
@@ -360,7 +360,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   {:reply, :in_progress, :workflow_completed, state_data}
   """
-  @spec deploy(term, term, Map) :: {:reply, :in_progress, :workflow_completed, Map}
+  @spec deploy(term, term, map) :: {:reply, :in_progress, :workflow_completed, map}
   def deploy(_event, _from, state_data) do
     call_deployer(state_data)
   end
@@ -385,12 +385,12 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   {:reply, :in_progress, :workflow_completed, state_data}
   """
-  @spec deploy_oa(term, term, Map) :: {:reply, :in_progress, :workflow_completed, Map}
+  @spec deploy_oa(term, term, map) :: {:reply, :in_progress, :workflow_completed, map}
   def deploy_oa(_event, _from, state_data) do
     call_deployer(state_data)
   end
 
-  @spec call_deployer(Map) :: {:reply, :in_progress, :workflow_completed, Map}
+  @spec call_deployer(map) :: {:reply, :in_progress, :workflow_completed, map}
   defp call_deployer(state_data) do
     type = Workflow.get_info(state_data[:workflow])[:current_step]
     Logger.debug("#{state_data[:workflow_fsm_prefix]} Requesting #{inspect type}...")
@@ -458,7 +458,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   {:reply, :in_progress, :workflow_completed, state_data}
   """
-  @spec scheduled(term, term, Map) :: {:reply, :in_progress, :workflow_completed, Map}
+  @spec scheduled(term, term, map) :: {:reply, :in_progress, :workflow_completed, map}
   def scheduled(_event, _from, state_data) do
     workflow_info = Workflow.get_info(state_data[:workflow])
     if workflow_info[:scheduled_start_time] == nil do

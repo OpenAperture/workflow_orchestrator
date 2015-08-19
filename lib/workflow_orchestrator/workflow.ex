@@ -38,7 +38,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   pid (Workflow) | {:error, reason}
   """
-  @spec create_from_payload(Map) :: pid | {:error, String.t}
+  @spec create_from_payload(map) :: pid | {:error, String.t}
   def create_from_payload(payload) do
     defaults = %{
       workflow_start_time: Time.now(),
@@ -98,7 +98,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   Map
   """
-  @spec get_info(pid) :: Map
+  @spec get_info(pid) :: map
   def get_info(workflow) do
   	Agent.get(workflow, fn info -> info end)
   end
@@ -261,7 +261,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   Map, containing the updated workflow_info
   """
-  @spec send_success_notification(Map, String.t) :: Map
+  @spec send_success_notification(map, String.t) :: map
 	def send_success_notification(workflow_info, message) do
 		send_notification(workflow_info, true, message)
 	end
@@ -279,7 +279,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   Map, containing the updated workflow_info
   """
-  @spec send_failure_notification(Map, String.t) :: Map
+  @spec send_failure_notification(map, String.t) :: map
 	def send_failure_notification(workflow_info, message) do
 		send_notification(workflow_info, false, message)
 	end
@@ -299,7 +299,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   Map, containing the updated workflow_info
   """
-  @spec send_notification(Map, term, String.t) :: Map
+  @spec send_notification(map, term, String.t) :: map
 	def send_notification(workflow_info, is_success, message) do
 		prefix = build_notification_prefix(workflow_info)
     Logger.debug("#{prefix} #{message}")
@@ -312,7 +312,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
     workflow_info
 	end
 
-  @spec build_notification_prefix(Map) :: String.t
+  @spec build_notification_prefix(map) :: String.t
   defp build_notification_prefix(workflow_info) do
     deployment_repo = workflow_info[:deployment_repo] || "Unknown"
     "[OA][#{workflow_info[:id]}][#{deployment_repo}]"
@@ -333,7 +333,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   The updated Workflow info
   """
-  @spec add_event_to_log(Map, String.t, String.t) :: Map
+  @spec add_event_to_log(map, String.t, String.t) :: map
   def add_event_to_log(workflow_info, event, prefix \\ nil) do
     if (prefix == nil) do
       prefix = build_notification_prefix(workflow_info)
@@ -491,7 +491,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   The atom containing the next available state or nil
   """
-  @spec resolve_next_step(Map) :: term
+  @spec resolve_next_step(map) :: term
   def resolve_next_step(workflow_info) do
     if workflow_info[:milestones] == nil || length(workflow_info[:milestones]) == 0 do
       nil
