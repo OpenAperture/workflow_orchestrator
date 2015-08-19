@@ -10,12 +10,12 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   @moduledoc """
   This module contains the logic to resolve a Docker build cluster
-  """  
+  """
 
   alias OpenAperture.WorkflowOrchestrator.Configuration
   alias OpenAperture.ManagerApi
   alias OpenAperture.ManagerApi.EtcdCluster
-  alias OpenAperture.ManagerApi.MessagingExchange  
+  alias OpenAperture.ManagerApi.MessagingExchange
 
   @doc """
   Specific start_link implementation (required by the supervisor)
@@ -26,7 +26,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}   
+  @spec start_link() :: {:ok, pid} | {:error, String.t()}
   def start_link do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
@@ -51,7 +51,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
   The `_from` option defines the tuple {from, ref}
 
   The `state` option represents the server's current state
-  
+
   ## Return Values
 
   {:reply, {messaging_exchange_id, machine}, resolved_state}
@@ -94,7 +94,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
     else
       docker_build_clusters = case get_local_build_clusters do
         nil -> get_global_build_clusters
-        [] -> get_global_build_clusters        
+        [] -> get_global_build_clusters
         docker_build_clusters -> docker_build_clusters
       end
       state = Map.put(state, :docker_build_clusters, docker_build_clusters)
@@ -117,7 +117,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
     case MessagingExchange.exchange_clusters!(ManagerApi.get_api, Configuration.get_current_exchange_id, %{allow_docker_builds: true}) do
       nil -> nil
       [] -> nil
-      docker_build_clusters -> 
+      docker_build_clusters ->
         Enum.reduce docker_build_clusters, [], fn(cluster, exchange_clusters) ->
           exchange_clusters ++ [{cluster["messaging_exchange_id"], cluster}]
         end
@@ -138,11 +138,11 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.DockerHostResolver do
     case EtcdCluster.list!(ManagerApi.get_api, %{allow_docker_builds: true}) do
       nil -> nil
       [] -> nil
-      docker_build_clusters -> 
+      docker_build_clusters ->
         Enum.reduce docker_build_clusters, [], fn(cluster, exchange_clusters) ->
           exchange_clusters ++ [{cluster["messaging_exchange_id"], cluster}]
         end
-    end    
+    end
   end
 
   @doc """

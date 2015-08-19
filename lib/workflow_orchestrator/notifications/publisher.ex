@@ -2,7 +2,7 @@
 # == publisher.ex
 #
 # This module contains the logic to publish messages to the Notifications system module
-# It is assumes that a Notifications module is running in the same exchanges 
+# It is assumes that a Notifications module is running in the same exchanges
 # as the Workflow Orchestrator
 #
 require Logger
@@ -12,7 +12,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Notifications.Publisher do
 
   @moduledoc """
   This module contains the logic to publish messages to the Notifications system module
-  """  
+  """
 
 	alias OpenAperture.Messaging.AMQP.QueueBuilder
 
@@ -32,7 +32,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Notifications.Publisher do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}   
+  @spec start_link() :: {:ok, pid} | {:error, String.t()}
   def start_link do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
@@ -52,7 +52,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Notifications.Publisher do
 
   ## Return Values
 
-  :ok | {:error, reason}   
+  :ok | {:error, reason}
   """
   @spec hipchat_notification(term, String.t(), String.t(), List) :: :ok | {:error, String.t()}
   def hipchat_notification(is_success, prefix, message, room_names \\ nil) do
@@ -83,22 +83,22 @@ defmodule OpenAperture.WorkflowOrchestrator.Notifications.Publisher do
 
   ## Return Values
 
-  :ok | {:error, reason}   
+  :ok | {:error, reason}
   """
   @spec email_notification(String.t, String.t(), List) :: :ok | {:error, String.t()}
   def email_notification(subject, message, recipients) do
     payload = %{
       prefix: subject,
-      message: message, 
+      message: message,
       notifications: %{email_addresses: recipients}
     }
 
     GenServer.cast(__MODULE__, {:email, payload})
-  end  
+  end
 
   @doc """
   Publishes a notification, via an asynchronous request to the `server`.
-  
+
   ## Options
 
   The `notification_type` option defines an atom representing what type of notification should be sent (i.e. :hipchat, :email)
@@ -106,7 +106,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Notifications.Publisher do
   The `payload` option defines the Hipchat Notification payload that should be sent
 
   The `state` option represents the server's current state
-  
+
   ## Return Values
 
   {:noreply, state}

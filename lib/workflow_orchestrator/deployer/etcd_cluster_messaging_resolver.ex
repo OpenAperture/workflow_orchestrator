@@ -10,7 +10,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolve
 
   @moduledoc """
   This module contains the logic to resolve the correct MessagingExchange for an EtcdCluster
-  """  
+  """
 
   alias OpenAperture.ManagerApi
   alias OpenAperture.ManagerApi.EtcdCluster
@@ -24,7 +24,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolve
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}   
+  @spec start_link() :: {:ok, pid} | {:error, String.t()}
   def start_link do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
@@ -55,7 +55,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolve
   The `_from` option defines the tuple {from, ref}
 
   The `state` option represents the server's current state
-  
+
   ## Return Values
 
   {:reply, {messaging_exchange_id, machine}, resolved_state}
@@ -82,5 +82,5 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolve
       nil -> nil
       cluster -> cluster["messaging_exchange_id"]
     end
-  end    
+  end
 end

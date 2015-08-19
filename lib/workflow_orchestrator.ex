@@ -9,7 +9,7 @@ defmodule OpenAperture.WorkflowOrchestrator do
 
   @moduledoc """
   This module contains definition the OpenAperture WorkflowOrchestrator implementation
-  """  
+  """
 
   @doc """
   Starts the given `_type`.

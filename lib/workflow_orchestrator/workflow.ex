@@ -11,7 +11,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
   @moduledoc """
   This module contains the for interacting with a Workflow
-  """    
+  """
 
   alias OpenAperture.WorkflowOrchestrator.Notifications.Publisher, as: NotificationsPublisher
 
@@ -31,7 +31,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   Method to create a Workflow
 
   ## Options
-   
+
   The `payload` option defines the Workflow info that should be stored and referenced
 
   ## Return values
@@ -52,7 +52,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
     if workflow_info[:workflow_start_time] == nil do
       workflow_info = Map.put(workflow_info, :workflow_start_time, Time.now())
     end
-    
+
     if workflow_info[:workflow_completed] == nil do
       workflow_info = Map.put(workflow_info, :workflow_completed, false)
     end
@@ -68,14 +68,14 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
     case Agent.start_link(fn -> workflow_info end) do
     	{:ok, pid} -> pid
     	{:error, reason} -> {:error, "Failed to create Workflow Agent:  #{inspect reason}"}
-    end	
+    end
   end
 
   @doc """
   Method to retrieve the id from a workflow
 
   ## Options
-   
+
   The `workflow` option defines the Workflow referenced
 
   ## Return values
@@ -91,7 +91,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   Method to retrieve the info associated with a workflow
 
   ## Options
-   
+
   The `workflow` option defines the Workflow referenced
 
   ## Return values
@@ -107,7 +107,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   Method to determine if a Workflow is completed
 
   ## Options
-   
+
   The `workflow` option defines the Workflow referenced
 
   ## Return values
@@ -128,7 +128,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   Method to determine if a Workflow has completed in error
 
   ## Options
-   
+
   The `workflow` option defines the Workflow referenced
 
   ## Return values
@@ -149,7 +149,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   Method to resolve the next Workflow step
 
   ## Options
-   
+
   The `workflow` option defines the Workflow referenced
 
   ## Return values
@@ -212,7 +212,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   Method to append a "success" notification to the Workflow's log
 
   ## Options
-   
+
   The `workflow_info` option defines the Workflow info Map
 
   The `message` option defines the message to publish
@@ -232,7 +232,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   Method to append a "failure" notification to the Workflow's log
 
   ## Options
-   
+
   The `workflow_info` option defines the Workflow info Map
 
   The `message` option defines the message to publish
@@ -252,7 +252,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   Method to publish a "success" notification
 
   ## Options
-   
+
   The `workflow_info` option defines the Workflow info Map
 
   The `message` option defines the message to publish
@@ -270,7 +270,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   Method to publish a "failure" notification
 
   ## Options
-   
+
   The `workflow_info` option defines the Workflow info Map
 
   The `message` option defines the message to publish
@@ -288,7 +288,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   Method to publish a notification
 
   ## Options
-   
+
   The `workflow_info` option defines the Workflow info Map
 
   The `is_success` option defines failure/success of the message
@@ -360,7 +360,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
   """
   @spec save(pid) :: :ok | {:error, String.t()}
 	def save(workflow) do
-    try do    
+    try do
   		workflow_info = get_info(workflow)
 
       workflow_error = workflow_info[:workflow_error]
@@ -385,33 +385,33 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
         workflow_completed: workflow_info[:workflow_completed],
         event_log: workflow_info[:event_log],
         scheduled_start_time: workflow_info[:scheduled_start_time],
-        execute_options: workflow_info[:execute_options]        
+        execute_options: workflow_info[:execute_options]
       }
-		
+
       case WorkflowAPI.update_workflow(ManagerApi.get_api, workflow_info[:id], workflow_payload) do
         %Response{status: 204} -> :ok
-        %Response{status: status} -> 
+        %Response{status: status} ->
           error_message = "Failed to save workflow; server returned #{status}"
           Logger.error(error_message)
           {:error, error_message}
   		end
     catch
-      :exit, code   -> 
+      :exit, code   ->
         error_message = "Failed to save workflow; Exited with code #{inspect code}"
-        Logger.error(error_message)        
+        Logger.error(error_message)
         {:error, error_message}
-      :throw, value -> 
+      :throw, value ->
         error_message = "Failed to save workflow; Throw called with #{inspect value}"
         {:error, error_message}
-      what, value   -> 
+      what, value   ->
         error_message = "Failed to save workflow; Caught #{inspect what} with #{inspect value}"
         {:error, error_message}
-    end      
-  end	
+    end
+  end
 
   @spec refresh(pid) :: :ok | {:error, String.t}
   def refresh(workflow) do
-    try do    
+    try do
       updated_payload = get_info(workflow)
 
       Logger.debug("Refreshing workflow #{updated_payload[:id]}...")
@@ -460,24 +460,24 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 
         Logger.debug("Successfully refreshed workflow #{updated_payload[:id]}")
         Agent.update(workflow, fn _ -> updated_payload end)
-        :ok    
+        :ok
       else
         error_msg = "Failed to refresh workflow #{updated_payload[:id]}!"
         Logger.error(error_msg)
         {:error, error_msg}
       end
     catch
-      :exit, code   -> 
+      :exit, code   ->
         error_message = "Failed to refresh workflow; Exited with code #{inspect code}"
-        Logger.error(error_message)        
+        Logger.error(error_message)
         {:error, error_message}
-      :throw, value -> 
+      :throw, value ->
         error_message = "Failed to refresh workflow; Throw called with #{inspect value}"
         {:error, error_message}
-      what, value   -> 
+      what, value   ->
         error_message = "Failed to refresh workflow; Caught #{inspect what} with #{inspect value}"
         {:error, error_message}
-    end          
+    end
   end
 
   @doc """
@@ -502,7 +502,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
       else
         String.to_atom(current_step)
       end
-      
+
     	{_, next_step} = Enum.reduce workflow_info[:milestones], {false, nil}, fn(available_step, {use_next_step, next_step})->
         available_step_atom = if available_step == nil || is_atom(available_step) do
           available_step
@@ -538,7 +538,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
         String.to_atom(next_step)
       end
     end
-  end  
+  end
 
   @doc """
   Method to complete a Workflow in failure
@@ -569,10 +569,10 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
       workflow_step_durations = %{}
     end
 
-    timestamp = TimexExtensions.get_elapsed_timestamp(workflow_info[:step_time])    
+    timestamp = TimexExtensions.get_elapsed_timestamp(workflow_info[:step_time])
     workflow_step_durations = Map.put(workflow_step_durations, to_string(workflow_info[:current_step]), timestamp)
     workflow_info = Map.put(workflow_info, :workflow_step_durations, workflow_step_durations)
-    workflow_info = send_success_notification(workflow_info, "Completed Workflow Milestone:  #{inspect workflow_info[:current_step]}, in #{timestamp}")    
+    workflow_info = send_success_notification(workflow_info, "Completed Workflow Milestone:  #{inspect workflow_info[:current_step]}, in #{timestamp}")
 
     Agent.update(workflow, fn _ -> workflow_info end)
     save(workflow)

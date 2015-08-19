@@ -10,7 +10,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
 
   @moduledoc """
   This module contains the logic to publish messages to the Deployer system module
-  """  
+  """
 
   alias OpenAperture.Messaging.ConnectionOptionsResolver
   alias OpenAperture.Messaging.AMQP.QueueBuilder
@@ -31,7 +31,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}   
+  @spec start_link() :: {:ok, pid} | {:error, String.t()}
   def start_link do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
@@ -45,7 +45,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
 
   ## Return Values
 
-  :ok | {:error, reason}   
+  :ok | {:error, reason}
   """
   @spec deploy(String.t(), String.t(), term) :: :ok | {:error, String.t()}
   def deploy(delivery_tag, messaging_exchange_id, payload) do
@@ -61,7 +61,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
 
   ## Return Values
 
-  :ok | {:error, reason}   
+  :ok | {:error, reason}
   """
   @spec deploy_oa(String.t(), String.t(), term) :: :ok | {:error, String.t()}
   def deploy_oa(delivery_tag, messaging_exchange_id, payload) do
@@ -115,7 +115,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
     deploy_queue = QueueBuilder.build(ManagerApi.get_api, queue_name, messaging_exchange_id)
 
     connection_options = ConnectionOptionsResolver.resolve(
-      ManagerApi.get_api, 
+      ManagerApi.get_api,
       Configuration.get_current_broker_id,
       Configuration.get_current_exchange_id,
       messaging_exchange_id
@@ -124,6 +124,6 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.Publisher do
     case publish(connection_options, deploy_queue, payload) do
       :ok -> Logger.debug("Successfully published #{queue_name} message")
       {:error, reason} -> Logger.error("Failed to publish #{queue_name} message:  #{inspect reason}")
-    end    
+    end
   end
 end
