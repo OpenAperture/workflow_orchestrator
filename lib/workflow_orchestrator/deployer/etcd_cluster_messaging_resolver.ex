@@ -10,7 +10,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolve
 
   @moduledoc """
   This module contains the logic to resolve the correct MessagingExchange for an EtcdCluster
-  """  
+  """
 
   alias OpenAperture.ManagerApi
   alias OpenAperture.ManagerApi.EtcdCluster
@@ -24,7 +24,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolve
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}   
+  @spec start_link() :: {:ok, pid} | {:error, String.t}
   def start_link do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
@@ -40,7 +40,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolve
 
   messaging_exchange_id
   """
-  @spec exchange_for_cluster(String.t()) :: String.t()
+  @spec exchange_for_cluster(String.t) :: String.t
   def exchange_for_cluster(etcd_token) do
   	GenServer.call(__MODULE__, {:exchange_for_cluster, etcd_token})
   end
@@ -55,12 +55,12 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolve
   The `_from` option defines the tuple {from, ref}
 
   The `state` option represents the server's current state
-  
+
   ## Return Values
 
   {:reply, {messaging_exchange_id, machine}, resolved_state}
   """
-  @spec handle_call({:exchange_for_cluster, String.t()}, term, Map) :: {:reply, {String.t(), Map}, Map}
+  @spec handle_call({:exchange_for_cluster, String.t}, term, map) :: {:reply, {String.t, map}, map}
   def handle_call({:exchange_for_cluster, etcd_token}, _from, state) do
     {:reply, get_exchange_for_cluster(etcd_token), state}
   end
@@ -76,11 +76,11 @@ defmodule OpenAperture.WorkflowOrchestrator.Deployer.EtcdClusterMessagingResolve
 
   List of {messaging_exchange_id, cluster}
   """
-  @spec get_exchange_for_cluster(Map) :: List
+  @spec get_exchange_for_cluster(map) :: list
   def get_exchange_for_cluster(etcd_token) do
     case EtcdCluster.get_cluster!(ManagerApi.get_api, etcd_token) do
       nil -> nil
       cluster -> cluster["messaging_exchange_id"]
     end
-  end    
+  end
 end

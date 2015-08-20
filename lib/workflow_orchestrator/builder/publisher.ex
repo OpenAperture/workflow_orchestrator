@@ -10,7 +10,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.Publisher do
 
   @moduledoc """
   This module contains the logic to publish messages to the Builder system module
-  """  
+  """
 
   alias OpenAperture.Messaging.ConnectionOptionsResolver
 	alias OpenAperture.Messaging.AMQP.QueueBuilder
@@ -31,7 +31,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.Publisher do
 
   {:ok, pid} | {:error, reason}
   """
-  @spec start_link() :: {:ok, pid} | {:error, String.t()}   
+  @spec start_link() :: {:ok, pid} | {:error, String.t}
   def start_link do
     GenServer.start_link(__MODULE__, %{}, name: __MODULE__)
   end
@@ -45,9 +45,9 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.Publisher do
 
   ## Return Values
 
-  :ok | {:error, reason}   
+  :ok | {:error, reason}
   """
-  @spec build(String.t(), String.t(), term) :: :ok | {:error, String.t()}
+  @spec build(String.t, String.t, term) :: :ok | {:error, String.t}
   def build(delivery_tag, messaging_exchange_id, payload) do
    	GenServer.cast(__MODULE__, {:build, delivery_tag, messaging_exchange_id, payload})
   end
@@ -67,7 +67,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.Publisher do
   would be sent by another process, which could cause
   messages to arrive out of order.
   """
-  @spec handle_cast({:build, String.t(), String.t(), Map}, Map) :: {:noreply, Map}
+  @spec handle_cast({:build, String.t, String.t, map}, map) :: {:noreply, map}
   def handle_cast({:build, _delivery_tag, messaging_exchange_id, payload}, state) do
     if !OpenAperture.ManagerApi.MessagingExchange.exchange_has_modules_of_type?(messaging_exchange_id, "builder") do
       {:error, "No builder modules were found on exchange #{messaging_exchange_id}"}
@@ -75,16 +75,16 @@ defmodule OpenAperture.WorkflowOrchestrator.Builder.Publisher do
       build_queue = QueueBuilder.build(ManagerApi.get_api, "builder", messaging_exchange_id)
 
       connection_options = ConnectionOptionsResolver.resolve(
-        ManagerApi.get_api, 
+        ManagerApi.get_api,
         Configuration.get_current_broker_id,
         Configuration.get_current_exchange_id,
         messaging_exchange_id
       )
 
   		case publish(connection_options, build_queue, payload) do
-  			:ok -> 
+  			:ok ->
           Logger.debug("Successfully published Builder message")
-  			{:error, reason} -> 
+  			{:error, reason} ->
           Logger.error("Failed to publish Builder message:  #{inspect reason}")
   		end
       {:noreply, state}
