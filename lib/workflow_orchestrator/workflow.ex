@@ -390,8 +390,8 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
 		
       case WorkflowAPI.update_workflow(ManagerApi.get_api, workflow_info[:id], workflow_payload) do
         %Response{status: 204} -> :ok
-        %Response{status: status} -> 
-          error_message = "Failed to save workflow; server returned #{status}"
+        %Response{status: status, body: body} -> 
+          error_message = "Failed to save workflow #{workflow_info[:id]}; server returned #{status}:  #{inspect body}"
           Logger.error(error_message)
           {:error, error_message}
   		end
