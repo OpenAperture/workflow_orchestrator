@@ -486,7 +486,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
         remaining_seconds > 0 ->
           Workflow.add_success_notification(state_data[:workflow], "Workflow is not scheduled to start until #{workflow_info[:scheduled_start_time]} (#{remaining_seconds} seconds remain).  Next evaluation will occur in #{remaining_seconds} seconds")
           Workflow.save(state_data[:workflow])
-          :timer.sleep((remaining_seconds+10) * sleep_delay_factor)
+          :timer.sleep((remaining_seconds+10) * 1000 * sleep_delay_factor)
           #wipe out the current step and queue another evaluation
           Workflow.refresh(state_data[:workflow])
           workflow_info = Workflow.get_info(state_data[:workflow])
