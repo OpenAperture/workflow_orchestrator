@@ -480,8 +480,8 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
           #wipe out the current step and queue another evaluation
           Workflow.refresh(state_data[:workflow])
           workflow_info = Workflow.get_info(state_data[:workflow])
+          workflow_info = Map.put(workflow_info, :current_step, nil)
           request = OrchestratorRequest.from_payload(workflow_info)
-          request = %{request | current_step: nil}
           WorkflowOrchestratorPublisher.execute_orchestration(request)
         remaining_seconds > 0 ->
           Workflow.add_success_notification(state_data[:workflow], "Workflow is not scheduled to start until #{workflow_info[:scheduled_start_time]} (#{remaining_seconds} seconds remain).  Next evaluation will occur in #{remaining_seconds} seconds")
@@ -490,8 +490,8 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
           #wipe out the current step and queue another evaluation
           Workflow.refresh(state_data[:workflow])
           workflow_info = Workflow.get_info(state_data[:workflow])
+          workflow_info = Map.put(workflow_info, :current_step, nil)
           request = OrchestratorRequest.from_payload(workflow_info)
-          request = %{request | current_step: nil}
           WorkflowOrchestratorPublisher.execute_orchestration(request)          
         true ->
           #complete the milestone
