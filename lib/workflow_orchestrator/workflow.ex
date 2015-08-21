@@ -417,19 +417,19 @@ defmodule OpenAperture.WorkflowOrchestrator.Workflow do
       Logger.debug("Refreshing workflow #{updated_payload[:id]}...")
       updated_workflow = WorkflowAPI.get_workflow!(ManagerApi.get_api, updated_payload[:id])
       if updated_workflow != nil do
-        force_build = if updated_workflow["execute_options"]["force_build"] != nil do
+        force_build = if updated_workflow["execute_options"] != nil do
           updated_workflow["execute_options"]["force_build"]
         else
           updated_payload[:force_build]
         end
 
-        build_messaging_exchange_id = if updated_workflow["execute_options"]["build_messaging_exchange_id"] != nil do
+        build_messaging_exchange_id = if updated_workflow["execute_options"] != nil do
           updated_workflow["execute_options"]["build_messaging_exchange_id"]
         else
           updated_payload[:build_messaging_exchange_id]
         end
 
-        deploy_messaging_exchange_id = if updated_workflow["execute_options"]["deploy_messaging_exchange_id"] != nil do
+        deploy_messaging_exchange_id = if updated_workflow["execute_options"] != nil do
           updated_workflow["execute_options"]["deploy_messaging_exchange_id"]
         else
           updated_payload[:deploy_messaging_exchange_id]
