@@ -7,6 +7,10 @@ The WorkflowOrchestrator module provides a standardized mechanism to orchestrate
 * The Notifications module is running in the same exchange as the orchestrator
 * The Builder module (wherever it's running) has access to docker build clusters associated with it's exchange
 
+## Contributing
+
+To contribute to OpenAperture development, view our [contributing guide](http://openaperture.io/dev_resources/contributing.html)
+
 ## Module Responsibilities
 
 The WorkflowOrchestrator module is responsible for the following actions within OpenAperture:
