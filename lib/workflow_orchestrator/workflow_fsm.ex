@@ -89,7 +89,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   ## Return Values
 
-  {:ok, :workflow_starting, state_data}
+      {:ok, :workflow_starting, state_data}
   """
   @spec init(pid) :: {:ok, :workflow_starting, map}
 	def init(state_data) do
@@ -134,7 +134,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   ## Return Values
 
-  {:ok, term, map}
+      {:ok, term, map}
   """
   @spec code_change(term, term, map, term) :: {:ok, term, map}
   def code_change(_old_vsn, current_state, state_data, _opts) do
@@ -154,7 +154,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   ## Return Values
 
-  {:next_state, term, map}
+      {:next_state, term, map}
   """
   @spec handle_info(term, term, map) :: {:next_state,term, map}
   def handle_info(_info, current_state, state_data) do
@@ -174,7 +174,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   ## Return Values
 
-  {:next_state, term, map}
+      {:next_state, term, map}
   """
   @spec handle_event(term, term, map) :: {:next_state,term, map}
   def handle_event(_event, current_state, state_data) do
@@ -196,7 +196,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   ## Return Values
 
-  {:next_state, term, map}
+      {:next_state, term, map}
   """
   @spec handle_sync_event(term, term, term, map) :: {:next_state,term, map}
   def handle_sync_event(_event, _from, current_state, state_data) do
@@ -220,7 +220,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   ## Return Values
 
-  {:reply, :in_progress, next_milestone, state_data}
+      {:reply, :in_progress, next_milestone, state_data}
   """
   @spec workflow_starting(term, term, map) :: {:reply, :in_progress, term, map}
   def workflow_starting(_current_state, _from, state_data) do
@@ -291,7 +291,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   ## Return Values
 
-  {:reply, :in_progress, :workflow_completed, state_data}
+      {:reply, :in_progress, :workflow_completed, state_data}
   """
   @spec build(term, term, map) :: {:reply, :in_progress, :workflow_completed, map}
   def build(_event, _from, state_data) do
@@ -358,7 +358,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   ## Return Values
 
-  {:reply, :in_progress, :workflow_completed, state_data}
+      {:reply, :in_progress, :workflow_completed, state_data}
   """
   @spec deploy(term, term, map) :: {:reply, :in_progress, :workflow_completed, map}
   def deploy(_event, _from, state_data) do
@@ -383,7 +383,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   ## Return Values
 
-  {:reply, :in_progress, :workflow_completed, state_data}
+      {:reply, :in_progress, :workflow_completed, state_data}
   """
   @spec deploy_oa(term, term, map) :: {:reply, :in_progress, :workflow_completed, map}
   def deploy_oa(_event, _from, state_data) do
@@ -456,7 +456,7 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
 
   ## Return Values
 
-  {:reply, :in_progress, :workflow_completed, state_data}
+      {:reply, :in_progress, :workflow_completed, state_data}
   """
   @spec scheduled(term, term, map) :: {:reply, :in_progress, :workflow_completed, map}
   def scheduled(_event, _from, state_data) do

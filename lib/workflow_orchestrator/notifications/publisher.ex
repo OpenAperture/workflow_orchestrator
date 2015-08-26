@@ -109,7 +109,7 @@ defmodule OpenAperture.WorkflowOrchestrator.Notifications.Publisher do
 
   ## Return Values
 
-  {:noreply, state}
+      {:noreply, state}
 
   """
   @spec handle_cast({term, map}, map) :: {:noreply, map}
