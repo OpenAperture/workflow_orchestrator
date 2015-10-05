@@ -439,6 +439,49 @@ defmodule OpenAperture.WorkflowOrchestrator.WorkflowFSM do
   end
 
   @doc """
+  :gen_fsm callback - http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-3 for the state :deploy
+  This callback will take the following action(s):
+    * Publish a Deployer request to a Deployer in the same exchange
+    * Transition to :workflow_completed
+
+  ## Options
+
+  The `current_state` option contains the last state of the :gen_fsm server
+
+  The `from` option contains the caller of the state transition
+
+  The `state_data` option contains the default state data of the :gen_fsm server
+
+  ## Return Values
+
+      {:reply, :in_progress, :workflow_completed, state_data}
+  """
+  @spec deploy_ecs(term, term, map) :: {:reply, :in_progress, :workflow_completed, map}
+  def deploy_ecs(_event, _from, state_data) do
+    Logger.debug("#{state_data[:workflow_fsm_prefix]} Requesting #{inspect Workflow.get_info(state_data[:workflow])[:current_step]}...")
+
+    unless OpenAperture.ManagerApi.MessagingExchange.exchange_has_modules_of_type?(Configuration.get_current_exchange_id, "deployer") do
+      Workflow.workflow_failed(state_data[:workflow], "Unable to request deploy to ECS - no deploy clusters are available in exchange #{Configuration.get_current_exchange_id}!")
+    else
+      #default entries for all communications to children
+      request = OrchestratorRequest.from_payload(Workflow.get_info(state_data[:workflow]))
+      request = %{request | notifications_exchange_id: Configuration.get_current_exchange_id}
+      request = %{request | notifications_broker_id: Configuration.get_current_broker_id}
+      request = %{request | workflow_orchestration_exchange_id: Configuration.get_current_exchange_id}
+      request = %{request | workflow_orchestration_broker_id: Configuration.get_current_broker_id}
+      request = %{request | orchestration_queue_name: "workflow_orchestration"}
+
+      Logger.debug("#{state_data[:workflow_fsm_prefix]} Saving workflow...")
+      Workflow.save(state_data[:workflow])
+
+      Workflow.add_success_notification(state_data[:workflow], "Dispatching an ECS deploy request to exchange #{Configuration.get_current_exchange_id}...")
+      DeployerPublisher.deploy(state_data[:delivery_tag], Configuration.get_current_exchange_id, OrchestratorRequest.to_payload(request))
+    end
+
+    {:reply, :in_progress, :workflow_completed, state_data}
+  end  
+
+  @doc """
   :gen_fsm callback - http://www.erlang.org/doc/man/gen_fsm.html#Module:StateName-3 for the state :scheduled
   This callback will take the following action(s):
     * Determine the correct amount of time before the request should be re-evaluated
