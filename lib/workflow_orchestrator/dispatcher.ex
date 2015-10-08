@@ -76,60 +76,32 @@ defmodule OpenAperture.WorkflowOrchestrator.Dispatcher do
     options = OpenAperture.Messaging.ConnectionOptionsResolver.get_for_broker(ManagerApi.get_api, Configuration.get_current_broker_id)
     subscribe(options, workflow_orchestration_queue, fn(payload, _meta, %{delivery_tag: delivery_tag} = async_info) ->
       try do
-        Logger.debug("Starting to process request #{delivery_tag} (workflow #{payload[:id]})")
+        Logger.debug("Starting to process request #{delivery_tag} (workflow #{payload[:workflow_id]})")
         MessageManager.track(async_info)
         execute_orchestration(payload, delivery_tag)
       catch
-        :exit, code   ->
-          error_msg = "Message #{delivery_tag} (workflow #{payload[:id]}) Exited with code #{inspect code}.  Payload:  #{inspect payload}"
-          Logger.error(error_msg)
-          event = %{
-            unique: true,
-            type: :unhandled_exception,
-            severity: :error,
-            data: %{
-              component: :workflow_orchestration,
-              exchange_id: Configuration.get_current_exchange_id,
-              hostname: System.get_env("HOSTNAME")
-            },
-            message: error_msg
-          }
-          SystemEvent.create_system_event!(ManagerApi.get_api, event)
-          acknowledge(delivery_tag)
-        :throw, value ->
-          error_msg = "Message #{delivery_tag} (workflow #{payload[:id]}) Throw called with #{inspect value}.  Payload:  #{inspect payload}"
-          Logger.error(error_msg)
-          event = %{
-            unique: true,
-            type: :unhandled_exception,
-            severity: :error,
-            data: %{
-              component: :workflow_orchestration,
-              exchange_id: Configuration.get_current_exchange_id,
-              hostname: System.get_env("HOSTNAME")
-            },
-            message: error_msg
-          }
-          SystemEvent.create_system_event!(ManagerApi.get_api, event)
-          acknowledge(delivery_tag)
-        what, value   ->
-          error_msg = "Message #{delivery_tag} (workflow #{payload[:id]}) Caught #{inspect what} with #{inspect value}.  Payload:  #{inspect payload}"
-          Logger.error(error_msg)
-          event = %{
-            unique: true,
-            type: :unhandled_exception,
-            severity: :error,
-            data: %{
-              component: :workflow_orchestration,
-              exchange_id: Configuration.get_current_exchange_id,
-              hostname: System.get_env("HOSTNAME")
-            },
-            message: error_msg
-          }
-          SystemEvent.create_system_event!(ManagerApi.get_api, event)
-          acknowledge(delivery_tag)
+        :exit, code -> create_system_event(delivery_tag, "Message #{delivery_tag} (workflow #{payload[:workflow_id]}) Exited with code #{inspect code}.  Payload:  #{inspect payload}")
+        :throw, value -> create_system_event(delivery_tag, "Message #{delivery_tag} (workflow #{payload[:workflow_id]}) Throw called with #{inspect value}.  Payload:  #{inspect payload}")
+        what, value -> create_system_event(delivery_tag, "Message #{delivery_tag} (workflow #{payload[:workflow_id]}) Caught #{inspect what} with #{inspect value}.  Payload:  #{inspect payload}")
       end
     end)
+  end
+
+  defp create_system_event(delivery_tag, error_msg) do 
+    Logger.error(error_msg)
+    event = %{
+      unique: true,
+      type: :unhandled_exception,
+      severity: :error,
+      data: %{
+        component: :workflow_orchestration,
+        exchange_id: Configuration.get_current_exchange_id,
+        hostname: System.get_env("HOSTNAME")
+      },
+      message: error_msg
+    }
+    SystemEvent.create_system_event!(ManagerApi.get_api, event)
+    acknowledge(delivery_tag)    
   end
 
   @doc """
