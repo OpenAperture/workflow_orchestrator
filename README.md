@@ -1,7 +1,7 @@
 # OpenAperture.WorkflowOrchestrator
-
-[![Build Status](https://semaphoreci.com/api/v1/projects/f110a906-4c9a-4ba3-8106-e0b85ced97aa/394957/badge.svg)](https://semaphoreci.com/perceptive/workflow_orchestrator)
  
+[![Build Status](https://semaphoreci.com/api/v1/projects/f110a906-4c9a-4ba3-8106-e0b85ced97aa/394957/badge.svg)](https://semaphoreci.com/perceptive/workflow_orchestrator)
+
 The WorkflowOrchestrator module provides a standardized mechanism to orchestrate Workflow events for builds and deploys and publish messages to the relevant consumers.  In order to successfully orchestrate messages, there are a few deployment-related assumptions:
 
 * The Notifications module is running in the same exchange as the orchestrator
@@ -19,7 +19,7 @@ The WorkflowOrchestrator module is responsible for the following actions within 
 * If “workflow_completed” flag is true, stop executing Workflow milestones.
 * Save Workflow before executing request or completing Workflow
 * Provide worker modules with Orchestraion and Notification callbacks.
- 
+
 ## Messaging / Communication
 
 The following message(s) may be sent to the WorkflowOrchestrator.  A Workflow is a OpenAperture construct that can be created/retrieved at /workflow.
@@ -27,20 +27,20 @@ The following message(s) may be sent to the WorkflowOrchestrator.  A Workflow is
 * Start/Continue a Workflow
 	* Queue:  workflow_orchestration
 	* Payload (Map)
-		* force_build 
+		* force_build
 		* db field:  workflow_id (same as id)
 		* db field:  id
 		* db field:  deployment_repo
 		* db field:  deployment_repo_git_ref
-		* db field:  source_repo 
+		* db field:  source_repo
 		* db field:  source_repo_git_ref
 		* db field:  milestones [:build, :deploy]
-		* db field:  current_step 
-		* db field:  elapsed_step_time 
+		* db field:  current_step
+		* db field:  elapsed_step_time
 		* db field:  elapsed_workflow_time
 		* db field:  workflow_duration
 		* db field:  workflow_step_durations
-		* db field:  workflow_error 
+		* db field:  workflow_error
 		* db field:  workflow_completed
 		* db field:  event_log
 	* The following fields will be added to outgoing requests from the WorkflowOrchestrator
@@ -99,7 +99,7 @@ To startup the application, use mix run:
 MIX_ENV=prod elixir --sname workflow_orchestrator -S mix run --no-halt
 ```
 
-### Testing 
+### Testing
 
 You can then run the tests
 
